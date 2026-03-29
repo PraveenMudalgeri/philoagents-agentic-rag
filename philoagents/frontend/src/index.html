@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhiloAgents</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    #game-container { position: relative; }
+    #chat-overlay {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid #a0a0d0;
+      border-radius: 8px;
+      padding: 16px;
+      z-index: 100;
+      font-family: 'Georgia', serif;
+      color: #f0e6d2;
+    }
+    #chat-messages {
+      height: 200px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    #chat-messages .philosopher { color: #c8a96e; font-weight: bold; }
+    #chat-messages .user { color: #8ab4d8; }
+    #chat-input-row { display: flex; gap: 8px; }
+    #chat-input {
+      flex: 1;
+      background: #0d0d1a;
+      border: 1px solid #a0a0d0;
+      border-radius: 4px;
+      color: #f0e6d2;
+      padding: 8px 12px;
+      font-family: 'Georgia', serif;
+      font-size: 14px;
+    }
+    #chat-send {
+      background: #4a4a8a;
+      color: #f0e6d2;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+    }
+    #chat-send:hover { background: #6a6aaa; }
+    #chat-close {
+      position: absolute;
+      top: 8px; right: 12px;
+      background: none; border: none;
+      color: #a0a0d0; cursor: pointer; font-size: 18px;
+    }
+    #philosopher-name {
+      font-size: 16px;
+      font-weight: bold;
+      color: #c8a96e;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container"></div>
+
+  <!-- Chat UI overlay (shown when player interacts with an NPC) -->
+  <div id="chat-overlay">
+    <button id="chat-close" aria-label="Close chat">✕</button>
+    <div id="philosopher-name"></div>
+    <div id="chat-messages"></div>
+    <div id="chat-input-row">
+      <input id="chat-input" type="text" placeholder="Ask a question..." autocomplete="off" />
+      <button id="chat-send">Send</button>
+    </div>
+  </div>
+</body>
+</html>
