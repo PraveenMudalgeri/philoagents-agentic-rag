@@ -1,6 +1,11 @@
 /**
  * PreloadScene: loads all game assets before the main scene starts.
  */
+// Issue-requested walkthrough image URL (can be overridden at runtime).
+const BODY_WALKTHROUGH_IMAGE_URL =
+  window.BODY_WALKTHROUGH_IMAGE_URL ||
+  "https://github.com/user-attachments/assets/98ee40b0-960a-4222-9821-33797d34e0f7";
+
 export class PreloadScene extends Phaser.Scene {
   constructor() {
     super({ key: "PreloadScene" });
@@ -35,10 +40,8 @@ export class PreloadScene extends Phaser.Scene {
       loadingText.destroy();
     });
 
-    // Placeholder: add real asset loads here, e.g.:
-    // this.load.tilemapTiledJSON("map", "assets/maps/agora.json");
-    // this.load.image("tiles", "assets/tilesets/ancient_greece.png");
-    // this.load.spritesheet("player", "assets/sprites/player.png", { frameWidth: 32, frameHeight: 48 });
+    this.load.setCORS("anonymous");
+    this.load.image("body-walkthrough", BODY_WALKTHROUGH_IMAGE_URL);
   }
 
   create() {
