@@ -1,10 +1,56 @@
 /**
  * PreloadScene: loads all game assets before the main scene starts.
  */
-// Issue-requested walkthrough image URL (can be overridden at runtime).
-const BODY_WALKTHROUGH_IMAGE_URL =
-  window.BODY_WALKTHROUGH_IMAGE_URL ||
-  "https://github.com/user-attachments/assets/98ee40b0-960a-4222-9821-33797d34e0f7";
+const SYSTEM_IMAGE_URLS = {
+  "system-skeletal": new URL(
+    "../assets/skeletal_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-muscular": new URL(
+    "../assets/muscular_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-cardiovascular": new URL(
+    "../assets/cardiovascular_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-digestive": new URL(
+    "../assets/digestive_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-endocrine": new URL(
+    "../assets/endocrine_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-nervous": new URL(
+    "../assets/nervous_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-respiratory": new URL(
+    "../assets/respiratory_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-immune": new URL(
+    "../assets/immune_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-urinary": new URL(
+    "../assets/urinary_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-female-reproductive": new URL(
+    "../assets/female_reproductive_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-male-reproductive": new URL(
+    "../assets/male_reproductive_system.jpg",
+    import.meta.url,
+  ).toString(),
+  "system-integumentary": new URL(
+    "../assets/integumentary_system.jpg",
+    import.meta.url,
+  ).toString(),
+};
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -41,7 +87,9 @@ export class PreloadScene extends Phaser.Scene {
     });
 
     this.load.setCORS("anonymous");
-    this.load.image("body-walkthrough", BODY_WALKTHROUGH_IMAGE_URL);
+    Object.entries(SYSTEM_IMAGE_URLS).forEach(([key, imageUrl]) => {
+      this.load.image(key, imageUrl);
+    });
   }
 
   create() {

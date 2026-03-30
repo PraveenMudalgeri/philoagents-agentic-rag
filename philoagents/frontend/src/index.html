@@ -1,28 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BodyAgents</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #eaf4ff; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    #game-container { position: relative; }
+    @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap");
+
+    :root {
+      --ice-900: #081726;
+      --ice-800: #10253a;
+      --ice-700: #1b3a53;
+      --ice-600: #2d526d;
+      --ice-500: #4b6f8b;
+      --ice-300: #a8c0d4;
+      --ice-200: #ccdae7;
+      --ice-100: #e6eef6;
+      --white: #f6fbff;
+      --panel: rgba(16, 37, 58, 0.72);
+      --stroke: rgba(214, 231, 246, 0.24);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Rajdhani", sans-serif;
+      color: var(--white);
+      background:
+        linear-gradient(165deg, rgba(11, 28, 45, 0.86), rgba(9, 20, 34, 0.9)),
+        url("./assets/landing_reference.jpg") center / cover no-repeat fixed;
+      overflow-x: hidden;
+    }
+
+    .app-shell {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 16px auto 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .frost-panel {
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 28px 55px rgba(3, 9, 15, 0.42);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 18px;
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .hero-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 300px;
+    }
+
+    .eyebrow {
+      letter-spacing: 0.24em;
+      font-size: 12px;
+      color: var(--ice-300);
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(52px, 8vw, 92px);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      max-width: 470px;
+      margin-top: 14px;
+      margin-bottom: 12px;
+      text-shadow: 0 10px 30px rgba(5, 13, 22, 0.5);
+    }
+
+    #selected-system-name {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 20px;
+      letter-spacing: 0.08em;
+      color: var(--ice-200);
+      text-transform: uppercase;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .primary-btn,
+    .ghost-btn {
+      border: 1px solid var(--stroke);
+      color: var(--white);
+      border-radius: 999px;
+      font-family: "Rajdhani", sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 140ms ease, background-color 140ms ease;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #76a8d1, #4c7ea8);
+      padding: 11px 22px;
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      background: linear-gradient(135deg, #89b8de, #5a8ab2);
+    }
+
+    .ghost-btn {
+      background: transparent;
+      padding: 11px 18px;
+    }
+
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(158, 196, 224, 0.12);
+    }
+
+    .hero-preview {
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(173, 205, 229, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      min-height: 300px;
+    }
+
+    .hero-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      animation: revealUp 420ms ease;
+    }
+
+    .section-title {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(34px, 6vw, 58px);
+      line-height: 0.92;
+      letter-spacing: 0.03em;
+      margin: 28px 0 14px;
+      text-shadow: 0 10px 30px rgba(5, 13, 22, 0.45);
+    }
+
+    #systems-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .system-card {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      min-height: 220px;
+      border: 1px solid var(--stroke);
+      background: #27455d;
+      cursor: pointer;
+      transform: translateY(8px);
+      opacity: 0;
+      animation: staggerIn 500ms ease forwards;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .system-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 30px rgba(4, 10, 18, 0.35);
+    }
+
+    .system-card.selected {
+      outline: 2px solid #8ec1e7;
+      outline-offset: -2px;
+    }
+
+    .system-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(0.82) contrast(1.05);
+    }
+
+    .system-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(6, 15, 24, 0.8), rgba(6, 15, 24, 0.12));
+      pointer-events: none;
+    }
+
+    .card-meta {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 1;
+    }
+
+    .card-meta h3 {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 30px;
+      letter-spacing: 0.04em;
+      line-height: 0.95;
+    }
+
+    .card-meta p {
+      margin-top: 3px;
+      color: var(--ice-200);
+      font-size: 14px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    #game-shell {
+      display: none;
+      margin-top: 14px;
+    }
+
+    #game-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    #active-system-label {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ice-100);
+    }
+
+    #game-container {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--stroke);
+      box-shadow: 0 22px 40px rgba(3, 9, 15, 0.4);
+    }
+
     #chat-overlay {
       display: none;
       position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      width: 600px;
-      background: rgba(255, 255, 255, 0.96);
-      border: 1px solid #9ec5fe;
-      border-radius: 8px;
+      width: min(650px, calc(100vw - 28px));
+      background: rgba(9, 22, 36, 0.95);
+      border: 1px solid rgba(183, 209, 228, 0.32);
+      border-radius: 10px;
       padding: 16px;
       z-index: 100;
-      font-family: Arial, sans-serif;
-      color: #1f2d3d;
+      font-family: "Rajdhani", sans-serif;
+      color: var(--ice-100);
+      backdrop-filter: blur(4px);
     }
+
     #chat-messages {
       height: 200px;
       overflow-y: auto;
@@ -30,47 +283,154 @@
       font-size: 14px;
       line-height: 1.6;
     }
-    #chat-messages .npc { color: #0d6efd; font-weight: bold; }
-    #chat-messages .user { color: #2f3e46; }
-    #chat-input-row { display: flex; gap: 8px; }
+
+    #chat-messages .npc {
+      color: #9ed0f1;
+      font-weight: bold;
+    }
+
+    #chat-messages .user {
+      color: #e9f4ff;
+    }
+
+    #chat-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
     #chat-input {
       flex: 1;
-      background: #ffffff;
-      border: 1px solid #9ec5fe;
+      background: rgba(9, 26, 42, 0.95);
+      border: 1px solid rgba(183, 209, 228, 0.34);
       border-radius: 4px;
-      color: #1f2d3d;
+      color: var(--ice-100);
       padding: 8px 12px;
-      font-family: Arial, sans-serif;
+      font-family: "Rajdhani", sans-serif;
       font-size: 14px;
     }
+
     #chat-send {
-      background: #0d6efd;
+      background: linear-gradient(135deg, #76a8d1, #4c7ea8);
       color: #ffffff;
       border: none;
       border-radius: 4px;
       padding: 8px 16px;
       cursor: pointer;
-      font-family: Arial, sans-serif;
+      font-family: "Rajdhani", sans-serif;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 700;
     }
-    #chat-send:hover { background: #0b5ed7; }
+
+    #chat-send:hover {
+      background: linear-gradient(135deg, #89b8de, #5a8ab2);
+    }
+
     #chat-close {
       position: absolute;
-      top: 8px; right: 12px;
-      background: none; border: none;
-      color: #5a6a85; cursor: pointer; font-size: 18px;
+      top: 8px;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #9fc6df;
+      cursor: pointer;
+      font-size: 18px;
     }
+
     #npc-name {
       font-size: 16px;
       font-weight: bold;
-      color: #0d6efd;
+      color: #9ed0f1;
       margin-bottom: 10px;
+    }
+
+    @keyframes revealUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes staggerIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 1020px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      #systems-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app-shell {
+        width: calc(100vw - 18px);
+      }
+
+      #systems-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .section-title {
+        margin-top: 20px;
+      }
+
+      .card-meta h3 {
+        font-size: 24px;
+      }
+
+      .hero h1 {
+        font-size: clamp(46px, 15vw, 68px);
+      }
     }
   </style>
 </head>
-<body>
-  <div id="game-container"></div>
 
-  <!-- Chat UI overlay (shown when player interacts with an NPC) -->
+<body>
+  <main class="app-shell">
+    <section class="hero frost-panel">
+      <div class="hero-text">
+        <div>
+          <p class="eyebrow">BodyAgents Anatomy Explorer</p>
+          <h1>Collection Anatomy 01</h1>
+          <span id="selected-system-name">Skeletal System</span>
+        </div>
+
+        <div class="hero-actions">
+          <button id="open-selected-btn" class="primary-btn">Open Selected Module</button>
+          <button id="show-grid-btn" class="ghost-btn">Browse All Systems</button>
+        </div>
+      </div>
+
+      <div class="hero-preview">
+        <img id="hero-preview-image" src="./assets/skeletal_system.jpg" alt="Selected anatomy system" />
+      </div>
+    </section>
+
+    <h2 class="section-title">New Collection</h2>
+
+    <section id="systems-grid"></section>
+
+    <section id="game-shell">
+      <div id="game-toolbar" class="frost-panel">
+        <div id="active-system-label">Skeletal System</div>
+        <button id="back-to-landing" class="ghost-btn">Back To Landing</button>
+      </div>
+      <div id="game-container"></div>
+    </section>
+  </main>
+
   <div id="chat-overlay">
     <button id="chat-close" aria-label="Close chat">✕</button>
     <div id="npc-name"></div>
@@ -81,4 +441,5 @@
     </div>
   </div>
 </body>
+
 </html>
