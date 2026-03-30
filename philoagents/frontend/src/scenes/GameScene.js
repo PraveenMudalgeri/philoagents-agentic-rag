@@ -4,11 +4,11 @@
 import { ChatManager } from "../ui/ChatManager.js";
 
 const BODY_PARTS = [
-  { id: "brain", name: "Brain 🧠", x: 400, y: 140, color: 0xc39bd3 },
-  { id: "lungs", name: "Lungs 🫁", x: 345, y: 245, color: 0x85c1e9 },
-  { id: "heart", name: "Heart ❤️", x: 455, y: 255, color: 0xec7063 },
-  { id: "bones", name: "Bones 🦴", x: 400, y: 355, color: 0xf8f9f9 },
-  { id: "digestive_system", name: "Digestive System 🍎", x: 400, y: 470, color: 0xf5cba7 },
+  { id: "brain", name: "Brain 🧠", x: 400, y: 90, color: 0xc39bd3 },
+  { id: "lungs", name: "Lungs 🫁", x: 360, y: 205, color: 0x85c1e9 },
+  { id: "heart", name: "Heart ❤️", x: 430, y: 220, color: 0xec7063 },
+  { id: "bones", name: "Bones 🦴", x: 400, y: 335, color: 0xf8f9f9 },
+  { id: "digestive_system", name: "Digestive System 🍎", x: 400, y: 430, color: 0xf5cba7 },
 ];
 
 const INTERACT_DISTANCE = 80;
@@ -112,6 +112,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   _drawBodyLayout() {
+    if (this.textures.exists("body-walkthrough")) {
+      this.add.image(400, 300, "body-walkthrough").setDisplaySize(300, 590);
+      return;
+    }
+
     const body = this.add.graphics({ fillStyle: { color: 0xfdfefe } });
     body.fillEllipse(400, 120, 120, 120); // head
     body.fillRoundedRect(315, 180, 170, 330, 50); // torso

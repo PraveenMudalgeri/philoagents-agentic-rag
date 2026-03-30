@@ -35,10 +35,11 @@ export class PreloadScene extends Phaser.Scene {
       loadingText.destroy();
     });
 
-    // Placeholder: add real asset loads here, e.g.:
-    // this.load.tilemapTiledJSON("map", "assets/maps/agora.json");
-    // this.load.image("tiles", "assets/tilesets/ancient_greece.png");
-    // this.load.spritesheet("player", "assets/sprites/player.png", { frameWidth: 32, frameHeight: 48 });
+    this.load.setCORS("anonymous");
+    this.load.image(
+      "body-walkthrough",
+      "https://github.com/user-attachments/assets/98ee40b0-960a-4222-9821-33797d34e0f7"
+    );
   }
 
   create() {
