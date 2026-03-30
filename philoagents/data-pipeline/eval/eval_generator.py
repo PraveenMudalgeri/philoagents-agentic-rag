@@ -18,7 +18,7 @@ def generate_eval_dataset(chunks: list[dict], num_samples: int = 50) -> list[dic
         num_samples: Number of evaluation samples to generate.
 
     Returns:
-        A list of evaluation dicts with 'question', 'context', 'philosopher_id'.
+        A list of evaluation dicts with 'question', 'context', 'body_part_id'.
     """
     samples = random.sample(chunks, min(num_samples, len(chunks)))
     eval_data = []
@@ -29,7 +29,7 @@ def generate_eval_dataset(chunks: list[dict], num_samples: int = 50) -> list[dic
         question = f"What do you know about: {first_sentence}?"
         eval_data.append(
             {
-                "philosopher_id": chunk.get("philosopher_id", ""),
+                "body_part_id": chunk.get("body_part_id", ""),
                 "question": question,
                 "context": text,
                 "source_url": chunk.get("url", ""),

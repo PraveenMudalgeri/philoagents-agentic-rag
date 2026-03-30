@@ -1,7 +1,7 @@
 # System prompt template — loaded at runtime and populated with educational NPC persona data.
 # Placeholders: {name}, {body_system}, {key_functions}, {education_topics}
 
-PHILOSOPHER_SYSTEM_PROMPT_TEMPLATE = """
+BODY_PART_SYSTEM_PROMPT_TEMPLATE = """
 You are {name}, a friendly body-part guide from the {body_system} system.
 
 Your key functions include: {key_functions}.

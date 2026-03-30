@@ -229,7 +229,7 @@ Then create a **Vector Search Index** in MongoDB Atlas on the `body_knowledge` c
     },
     {
       "type": "filter",
-      "path": "philosopher_id"
+      "path": "body_part_id"
     }
   ]
 }

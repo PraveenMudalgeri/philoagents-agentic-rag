@@ -35,18 +35,18 @@ def store_in_mongodb(chunks: list[dict]) -> None:
     """Upsert embedded chunks into MongoDB Atlas.
 
     Args:
-        chunks: Chunks with 'philosopher_id', 'url', 'chunk_index', 'text', 'embedding'.
+        chunks: Chunks with 'body_part_id', 'url', 'chunk_index', 'text', 'embedding'.
     """
     uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     db_name = os.getenv("MONGODB_DB", "philoagents")
-    collection_name = os.getenv("MONGODB_VECTOR_COLLECTION", "philosopher_knowledge")
+    collection_name = os.getenv("MONGODB_VECTOR_COLLECTION", "body_knowledge")
 
     client = MongoClient(uri)
     collection = client[db_name][collection_name]
 
     operations = [
         UpdateOne(
-            {"philosopher_id": c["philosopher_id"], "url": c["url"], "chunk_index": c["chunk_index"]},
+            {"body_part_id": c["body_part_id"], "url": c["url"], "chunk_index": c["chunk_index"]},
             {"$set": c},
             upsert=True,
         )

@@ -96,7 +96,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (nearestNpc) {
-      this._hintText.setText(`Press [E] or click to chat with ${nearestNpc.name}`);
+      this._hintText.setText(`Press [E] or Click to chat with ${nearestNpc.name}`);
       if (Phaser.Input.Keyboard.JustDown(this._interactKey)) {
         this._chat.open(nearestNpc.id, nearestNpc.name);
       }
@@ -112,7 +112,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   _drawBodyLayout() {
-    const body = this.add.graphics({ fillStyle: { color: 0xfdfefe, alpha: 0.95 } });
+    const body = this.add.graphics({ fillStyle: { color: 0xfdfefe } });
     body.fillEllipse(400, 120, 120, 120); // head
     body.fillRoundedRect(315, 180, 170, 330, 50); // torso
     body.fillRoundedRect(270, 200, 35, 220, 18); // left arm
