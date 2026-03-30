@@ -69,12 +69,18 @@ export class GameScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
+    this._uiContainer = this.add.container(0, 0).setDepth(50);
+    this._worldContainer = this.add.container(0, 0).setDepth(5);
+
     this._createPlayerAnimations();
     this._drawBackground();
     this._drawBodyMap();
     this._createMarkers();
     this._createPlayer();
     this._createHud();
+    this._createMinimap();
+
+    this._initAriaAccessibility();
 
     this.scale.on("resize", this._handleResize, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -115,6 +121,8 @@ export class GameScene extends Phaser.Scene {
 
     this._updatePlayerMovement();
     this._updateInteractionState();
+    this._updateMinimap();
+    this._drawTargetPath();
   }
 
   _createPlayerAnimations() {
@@ -172,24 +180,29 @@ export class GameScene extends Phaser.Scene {
   }
 
   _drawBodyMap() {
-    this.add
+    this._bodyMapScale = Phaser.Math.Clamp(this.scale.width / 1100, 0.9, 1.25);
+    const mapWidth = BODY_WIDTH * this._bodyMapScale;
+    const mapHeight = BODY_HEIGHT * this._bodyMapScale;
+
+    const bodyMapImage = this.add
       .image(BODY_X, BODY_Y, "body-map")
-      .setDisplaySize(BODY_WIDTH, BODY_HEIGHT)
+      .setDisplaySize(mapWidth, mapHeight)
       .setDepth(2);
 
     const border = this.add.graphics();
     border.lineStyle(3, 0xe8d4af, 0.95);
     border.strokeRoundedRect(
-      BODY_X - BODY_WIDTH / 2 - 16,
-      BODY_Y - BODY_HEIGHT / 2 - 16,
-      BODY_WIDTH + 32,
-      BODY_HEIGHT + 32,
+      BODY_X - mapWidth / 2 - 16,
+      BODY_Y - mapHeight / 2 - 16,
+      mapWidth + 32,
+      mapHeight + 32,
       28,
     );
     border.setDepth(3);
 
-    this.add
-      .text(BODY_X, BODY_Y - BODY_HEIGHT / 2 - 160, "BODY MAP", {
+    const titleY = BODY_Y - mapHeight / 2 - 120;
+    this._bodyMapTitle = this.add
+      .text(BODY_X, titleY + 30, "BODY MAP", {
         fontFamily: "Georgia",
         fontSize: "82px",
         fontStyle: "bold",
@@ -206,12 +219,36 @@ export class GameScene extends Phaser.Scene {
         },
       })
       .setOrigin(0.5, 0)
+      .setAlpha(0)
       .setDepth(10)
       .setScrollFactor(1);
+
+    this._worldContainer.add([bodyMapImage, border, this._bodyMapTitle]);
+
+    this.tweens.add({
+      targets: this._bodyMapTitle,
+      y: titleY,
+      alpha: 1,
+      ease: "Quad.easeOut",
+      duration: 900,
+      delay: 100,
+    });
+  }
+
+  _scaledMarkerPos(marker) {
+    const markerScale = Phaser.Math.Clamp(this.scale.width / 1200, 0.9, 1.12);
+    return {
+      x: BODY_X + (marker.x - BODY_X) * markerScale,
+      y: BODY_Y + (marker.y - BODY_Y) * markerScale,
+    };
   }
 
   _createMarkers() {
     this._npcs = MARKERS.map((marker) => {
+      const scaled = this._scaledMarkerPos(marker);
+      marker.x = scaled.x;
+      marker.y = scaled.y;
+
       const glow = this.add
         .ellipse(marker.x, marker.y + 18, 42, 14, 0x000000, 0.28)
         .setDepth(8);
@@ -262,8 +299,12 @@ export class GameScene extends Phaser.Scene {
     this._player.setDepth(20);
     this._player.setCollideWorldBounds(true);
 
-    this.cameras.main.startFollow(this._player);
-    this.cameras.main.setZoom(1);
+    this.cameras.main.startFollow(this._player, true, 0.15, 0.15);
+    this.cameras.main.setDeadzone(240, 180);
+
+    const baseZoom = Phaser.Math.Clamp(this.scale.width / 1200, 0.85, 1.05);
+    this.cameras.main.setZoom(baseZoom);
+    this._baseZoom = baseZoom;
   }
 
   _createHud() {
@@ -320,6 +361,155 @@ export class GameScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(30);
+  }
+
+  _createMinimap() {
+    const size = Math.min(240, this.scale.width * 0.20);
+    const x = this.scale.width - size - 16;
+    const y = 16;
+
+    this._minimapBounds = new Phaser.Geom.Rectangle(x, y, size, size);
+    this._minimapScale = size / BODY_WIDTH;
+
+    this._minimapGraphics = this.add.graphics({
+      x: 0,
+      y: 0,
+      scrollFactorX: 0,
+      scrollFactorY: 0,
+    });
+    this._minimapGraphics.setDepth(42);
+
+    this._minimapLabel = this.add
+      .text(x + 8, y + 6, "Mini-map", {
+        fontFamily: "Arial",
+        fontSize: "14px",
+        color: "#ffecc0",
+        fontStyle: "bold",
+      })
+      .setScrollFactor(0)
+      .setDepth(43);
+
+    this._miniMapToggleText = this.add
+      .text(x + 8, y + size - 16, "Press M to toggle", {
+        fontFamily: "Arial",
+        fontSize: "12px",
+        color: "#e6e6e6",
+      })
+      .setScrollFactor(0)
+      .setDepth(43);
+
+    this._pathGraphics = this.add.graphics().setDepth(9).setScrollFactor(1);
+    this._targetLineGraphics = this.add.graphics().setDepth(11).setScrollFactor(1);
+
+    this._minimapVisible = true;
+    this._uiContainer.add([
+      this._minimapGraphics,
+      this._minimapLabel,
+      this._miniMapToggleText,
+    ]);
+
+    this.input.keyboard.on("keydown-M", () => {
+      this._minimapVisible = !this._minimapVisible;
+      this._minimapGraphics.setVisible(this._minimapVisible);
+      this._minimapLabel.setVisible(this._minimapVisible);
+      this._miniMapToggleText.setText(
+        this._minimapVisible ? "Press M to hide" : "Press M to show",
+      );
+    });
+  }
+
+  _updateMinimap() {
+    if (!this._minimapGraphics) return;
+
+    const mapRect = {
+      x: BODY_X - BODY_WIDTH / 2,
+      y: BODY_Y - BODY_HEIGHT / 2,
+      width: BODY_WIDTH,
+      height: BODY_HEIGHT,
+    };
+
+    const norm = (value, min, max) => (value - min) / (max - min);
+
+    this._minimapGraphics.clear();
+    this._minimapGraphics.fillStyle(0x121825, 0.9);
+    this._minimapGraphics.fillRect(
+      this._minimapBounds.x,
+      this._minimapBounds.y,
+      this._minimapBounds.width,
+      this._minimapBounds.height,
+    );
+    this._minimapGraphics.lineStyle(2, 0x8a7f5e, 0.9);
+    this._minimapGraphics.strokeRect(
+      this._minimapBounds.x,
+      this._minimapBounds.y,
+      this._minimapBounds.width,
+      this._minimapBounds.height,
+    );
+
+    const markerRadius = 4;
+    for (const npc of this._npcs || []) {
+      const mx = this._minimapBounds.x +
+        norm(npc.x, mapRect.x, mapRect.x + mapRect.width) * this._minimapBounds.width;
+      const my = this._minimapBounds.y +
+        norm(npc.y, mapRect.y, mapRect.y + mapRect.height) * this._minimapBounds.height;
+
+      this._minimapGraphics.fillStyle(0xffe18e, 1);
+      this._minimapGraphics.fillCircle(mx, my, markerRadius);
+    }
+
+    const px = this._player.x;
+    const py = this._player.y;
+    const pMapX = this._minimapBounds.x + norm(px, mapRect.x, mapRect.x + mapRect.width) * this._minimapBounds.width;
+    const pMapY = this._minimapBounds.y + norm(py, mapRect.y, mapRect.y + mapRect.height) * this._minimapBounds.height;
+
+    this._minimapGraphics.fillStyle(0x71dcff, 1);
+    this._minimapGraphics.fillCircle(pMapX, pMapY, 5);
+  }
+
+  _drawTargetPath() {
+    if (!this._pathGraphics || !this._player) return;
+
+    this._pathGraphics.clear();
+    this._targetLineGraphics.clear();
+
+    if (!this._currentTarget) return;
+
+    this._pathGraphics.lineStyle(2, 0x6fda6e, 0.65);
+    this._pathGraphics.beginPath();
+    this._pathGraphics.moveTo(this._player.x, this._player.y);
+    this._pathGraphics.lineTo(this._currentTarget.x, this._currentTarget.y);
+    this._pathGraphics.strokePath();
+
+    this._targetLineGraphics.lineStyle(4, 0xffe1a4, 0.7);
+    this._targetLineGraphics.beginPath();
+    this._targetLineGraphics.moveTo(this._player.x, this._player.y);
+    this._targetLineGraphics.lineTo(this._currentTarget.x, this._currentTarget.y);
+    this._targetLineGraphics.strokePath();
+  }
+
+  _initAriaAccessibility() {
+    let ariaEl = document.getElementById("philoagents-aria-live");
+    if (!ariaEl) {
+      ariaEl = document.createElement("div");
+      ariaEl.id = "philoagents-aria-live";
+      ariaEl.setAttribute("role", "status");
+      ariaEl.setAttribute("aria-live", "polite");
+      ariaEl.style.position = "absolute";
+      ariaEl.style.left = "-9999px";
+      ariaEl.style.top = "-9999px";
+      ariaEl.style.width = "1px";
+      ariaEl.style.height = "1px";
+      ariaEl.style.overflow = "hidden";
+      document.body.appendChild(ariaEl);
+    }
+    this._ariaLive = ariaEl;
+
+    this.input.keyboard.on("keydown-I", () => {
+      this._hintText.setText("Instructions: Arrow/WASD to move, E to interact, ESC to menu.");
+      if (this._ariaLive) {
+        this._ariaLive.textContent = "Instructions shown: Arrow or WASD keys to move. Press E to interact with highlighted NPC.";
+      }
+    });
   }
 
   _updatePlayerMovement() {
@@ -379,6 +569,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (nearestNpc) {
+      this._currentTarget = nearestNpc;
       nearestNpc.glow.setAlpha(0.42);
       nearestNpc.sprite.setFrame(
         `${nearestNpc.baseFrame}-${this._directionTowardPlayer(nearestNpc)}`,
@@ -387,11 +578,19 @@ export class GameScene extends Phaser.Scene {
         `Press [E] or click to chat about ${nearestNpc.name}`,
       );
 
+      if (this._ariaLive) {
+        this._ariaLive.textContent = `Target is ${nearestNpc.name}. Press E to chat.`;
+      }
+
       if (Phaser.Input.Keyboard.JustDown(this._interactKey)) {
         this._chat.open(nearestNpc.id, nearestNpc.name);
       }
     } else {
+      this._currentTarget = null;
       this._hintText.setText("");
+      if (this._ariaLive) {
+        this._ariaLive.textContent = "No NPC in range.";
+      }
     }
   }
 
@@ -424,5 +623,27 @@ export class GameScene extends Phaser.Scene {
       const scaleFactor = Math.max(1, gameSize.width / 900);
       this._mapTitle.setFontSize(42 * scaleFactor);
     }
+
+    if (this._minimapBounds) {
+      const size = Math.min(220, gameSize.width * 0.20);
+      this._minimapBounds.setSize(size, size);
+      this._minimapBounds.setPosition(gameSize.width - size - 16, 16);
+      this._minimapLabel.setPosition(gameSize.width - size - 8, 24);
+    }
+
+    const zoom = Phaser.Math.Clamp(gameSize.width / 1200, 0.85, 1.05);
+    this.cameras.main.setZoom(zoom);
+
+    this._npcs?.forEach((npc, idx) => {
+      const original = MARKERS[idx];
+      const adjusted = this._scaledMarkerPos(original);
+      npc.x = adjusted.x;
+      npc.y = adjusted.y;
+      npc.sprite.setPosition(adjusted.x, adjusted.y);
+      npc.glow.setPosition(adjusted.x, adjusted.y + 18);
+      npc.label.setPosition(adjusted.x, adjusted.y + 44);
+      MARKERS[idx].x = adjusted.x;
+      MARKERS[idx].y = adjusted.y;
+    });
   }
 }
