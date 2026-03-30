@@ -1,55 +1,27 @@
-/**
- * PreloadScene: loads all game assets before the main scene starts.
- */
-const SYSTEM_IMAGE_URLS = {
-  "system-skeletal": new URL(
-    "../assets/skeletal_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-muscular": new URL(
-    "../assets/muscular_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-cardiovascular": new URL(
-    "../assets/cardiovascular_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-digestive": new URL(
-    "../assets/digestive_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-endocrine": new URL(
-    "../assets/endocrine_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-nervous": new URL(
-    "../assets/nervous_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-respiratory": new URL(
-    "../assets/respiratory_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-immune": new URL(
-    "../assets/immune_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-urinary": new URL(
-    "../assets/urinary_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-female-reproductive": new URL(
-    "../assets/female_reproductive_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-male-reproductive": new URL(
-    "../assets/male_reproductive_system.jpg",
-    import.meta.url,
-  ).toString(),
-  "system-integumentary": new URL(
-    "../assets/integumentary_system.jpg",
-    import.meta.url,
-  ).toString(),
+import Phaser from "phaser";
+
+const BODY_MAP_URL = new URL("../assets/body_map.png", import.meta.url).toString();
+const CHARACTER_ASSETS = {
+  sophia: {
+    image: new URL("../assets/characters/sophia/atlas.png", import.meta.url).toString(),
+    atlas: new URL("../assets/characters/sophia/atlas.json", import.meta.url).toString(),
+  },
+  plato: {
+    image: new URL("../assets/characters/plato/atlas.png", import.meta.url).toString(),
+    atlas: new URL("../assets/characters/plato/atlas.json", import.meta.url).toString(),
+  },
+  aristotle: {
+    image: new URL("../assets/characters/aristotle/atlas.png", import.meta.url).toString(),
+    atlas: new URL("../assets/characters/aristotle/atlas.json", import.meta.url).toString(),
+  },
+  turing: {
+    image: new URL("../assets/characters/turing/atlas.png", import.meta.url).toString(),
+    atlas: new URL("../assets/characters/turing/atlas.json", import.meta.url).toString(),
+  },
+  descartes: {
+    image: new URL("../assets/characters/descartes/atlas.png", import.meta.url).toString(),
+    atlas: new URL("../assets/characters/descartes/atlas.json", import.meta.url).toString(),
+  },
 };
 
 export class PreloadScene extends Phaser.Scene {
@@ -58,7 +30,6 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   preload() {
-    // Create a simple loading bar
     const { width, height } = this.scale;
     const progressBar = this.add.graphics();
     const progressBox = this.add.graphics();
@@ -67,7 +38,7 @@ export class PreloadScene extends Phaser.Scene {
     progressBox.fillRect(width / 2 - 160, height / 2 - 25, 320, 50);
 
     const loadingText = this.add
-      .text(width / 2, height / 2 - 50, "Loading PhiloAgents...", {
+      .text(width / 2, height / 2 - 50, "Loading BodyAgents...", {
         fontFamily: "Georgia",
         fontSize: "18px",
         fill: "#f0e6d2",
@@ -87,12 +58,13 @@ export class PreloadScene extends Phaser.Scene {
     });
 
     this.load.setCORS("anonymous");
-    Object.entries(SYSTEM_IMAGE_URLS).forEach(([key, imageUrl]) => {
-      this.load.image(key, imageUrl);
+    this.load.image("body-map", BODY_MAP_URL);
+    Object.entries(CHARACTER_ASSETS).forEach(([key, value]) => {
+      this.load.atlas(key, value.image, value.atlas);
     });
   }
 
   create() {
-    this.scene.start("GameScene");
+    this.scene.start("MainMenuScene");
   }
 }
