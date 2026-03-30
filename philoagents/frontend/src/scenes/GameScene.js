@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { ChatManager } from "../ui/ChatManager.js";
+import { ensureLightBgmPlaying } from "../audio/lightBgm.js";
 
 const WORLD_WIDTH = 1600;
 const WORLD_HEIGHT = 2400;
@@ -112,6 +113,13 @@ export class GameScene extends Phaser.Scene {
       this.input.keyboard.enabled = true;
       this._setActiveNpcHighlight(null);
     };
+
+    this.input.once("pointerdown", () => {
+      ensureLightBgmPlaying();
+    });
+    this.input.keyboard.once("keydown", () => {
+      ensureLightBgmPlaying();
+    });
 
     window.addEventListener("chat-opened", this._onChatOpened);
     window.addEventListener("chat-closed", this._onChatClosed);

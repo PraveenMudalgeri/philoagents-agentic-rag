@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { ensureLightBgmPlaying } from "../audio/lightBgm.js";
 
 export class MainMenuScene extends Phaser.Scene {
   constructor() {
@@ -8,6 +9,12 @@ export class MainMenuScene extends Phaser.Scene {
 
   create() {
     this._renderLayout(this.scale.width, this.scale.height);
+    this.input.once("pointerdown", () => {
+      ensureLightBgmPlaying();
+    });
+    this.input.keyboard.once("keydown", () => {
+      ensureLightBgmPlaying();
+    });
     this.scale.on("resize", this._handleResize, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off("resize", this._handleResize, this);
@@ -64,6 +71,7 @@ export class MainMenuScene extends Phaser.Scene {
 
     const buttonX = Math.max(100, width * 0.5 - 170);
     this._createButton(buttonX, height * 0.68, "Enter Body Map", () => {
+      ensureLightBgmPlaying();
       this.scene.start("GameScene");
     });
 
