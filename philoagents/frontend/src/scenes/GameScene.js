@@ -71,6 +71,7 @@ export class GameScene extends Phaser.Scene {
 
     this._uiContainer = this.add.container(0, 0).setDepth(50);
     this._worldContainer = this.add.container(0, 0).setDepth(5);
+    this._uiContainer.setScrollFactor(0);
 
     this._createPlayerAnimations();
     this._drawBackground();
@@ -374,9 +375,8 @@ export class GameScene extends Phaser.Scene {
     this._minimapGraphics = this.add.graphics({
       x: 0,
       y: 0,
-      scrollFactorX: 0,
-      scrollFactorY: 0,
     });
+    this._minimapGraphics.setScrollFactor(0);
     this._minimapGraphics.setDepth(42);
 
     this._minimapLabel = this.add
@@ -421,14 +421,23 @@ export class GameScene extends Phaser.Scene {
   _updateMinimap() {
     if (!this._minimapGraphics) return;
 
-    const mapRect = {
+    const worldRect = {
+      x: 0,
+      y: 0,
+      width: WORLD_WIDTH,
+      height: WORLD_HEIGHT,
+    };
+
+    const bodyRect = {
       x: BODY_X - BODY_WIDTH / 2,
       y: BODY_Y - BODY_HEIGHT / 2,
       width: BODY_WIDTH,
       height: BODY_HEIGHT,
     };
 
-    const norm = (value, min, max) => (value - min) / (max - min);
+    const norm = (value, min, max) => Phaser.Math.Clamp((value - min) / (max - min), 0, 1);
+    const toMiniX = (x) => this._minimapBounds.x + norm(x, worldRect.x, worldRect.x + worldRect.width) * this._minimapBounds.width;
+    const toMiniY = (y) => this._minimapBounds.y + norm(y, worldRect.y, worldRect.y + worldRect.height) * this._minimapBounds.height;
 
     this._minimapGraphics.clear();
     this._minimapGraphics.fillStyle(0x121825, 0.9);
@@ -446,12 +455,22 @@ export class GameScene extends Phaser.Scene {
       this._minimapBounds.height,
     );
 
+    // Show where the body image sits in the full world so the minimap context stays intuitive.
+    const bodyMiniX = toMiniX(bodyRect.x);
+    const bodyMiniY = toMiniY(bodyRect.y);
+    const bodyMiniW =
+      toMiniX(bodyRect.x + bodyRect.width) - bodyMiniX;
+    const bodyMiniH =
+      toMiniY(bodyRect.y + bodyRect.height) - bodyMiniY;
+    this._minimapGraphics.fillStyle(0x22344d, 0.35);
+    this._minimapGraphics.fillRect(bodyMiniX, bodyMiniY, bodyMiniW, bodyMiniH);
+    this._minimapGraphics.lineStyle(1, 0xa8c7ff, 0.65);
+    this._minimapGraphics.strokeRect(bodyMiniX, bodyMiniY, bodyMiniW, bodyMiniH);
+
     const markerRadius = 4;
     for (const npc of this._npcs || []) {
-      const mx = this._minimapBounds.x +
-        norm(npc.x, mapRect.x, mapRect.x + mapRect.width) * this._minimapBounds.width;
-      const my = this._minimapBounds.y +
-        norm(npc.y, mapRect.y, mapRect.y + mapRect.height) * this._minimapBounds.height;
+      const mx = toMiniX(npc.x);
+      const my = toMiniY(npc.y);
 
       this._minimapGraphics.fillStyle(0xffe18e, 1);
       this._minimapGraphics.fillCircle(mx, my, markerRadius);
@@ -459,8 +478,8 @@ export class GameScene extends Phaser.Scene {
 
     const px = this._player.x;
     const py = this._player.y;
-    const pMapX = this._minimapBounds.x + norm(px, mapRect.x, mapRect.x + mapRect.width) * this._minimapBounds.width;
-    const pMapY = this._minimapBounds.y + norm(py, mapRect.y, mapRect.y + mapRect.height) * this._minimapBounds.height;
+    const pMapX = toMiniX(px);
+    const pMapY = toMiniY(py);
 
     this._minimapGraphics.fillStyle(0x71dcff, 1);
     this._minimapGraphics.fillCircle(pMapX, pMapY, 5);
