@@ -1,14 +1,14 @@
 /**
- * GameScene: the main game world where the player moves and interacts with philosopher NPCs.
+ * GameScene: the main game world where the player explores a body map and interacts with organ NPCs.
  */
 import { ChatManager } from "../ui/ChatManager.js";
 
-const PHILOSOPHERS = [
-  { id: "socrates", name: "Socrates", x: 200, y: 200 },
-  { id: "plato", name: "Plato", x: 400, y: 300 },
-  { id: "aristotle", name: "Aristotle", x: 600, y: 200 },
-  { id: "nietzsche", name: "Nietzsche", x: 300, y: 450 },
-  { id: "kant", name: "Kant", x: 550, y: 450 },
+const BODY_PARTS = [
+  { id: "brain", name: "Brain 🧠", x: 400, y: 140, color: 0xc39bd3 },
+  { id: "lungs", name: "Lungs 🫁", x: 345, y: 245, color: 0x85c1e9 },
+  { id: "heart", name: "Heart ❤️", x: 455, y: 255, color: 0xec7063 },
+  { id: "bones", name: "Bones 🦴", x: 400, y: 355, color: 0xf8f9f9 },
+  { id: "digestive_system", name: "Digestive System 🍎", x: 400, y: 470, color: 0xf5cba7 },
 ];
 
 const INTERACT_DISTANCE = 80;
@@ -21,33 +21,35 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     // Background
-    this.add.rectangle(400, 300, 800, 600, 0x1a1a2e);
+    this.add.rectangle(400, 300, 800, 600, 0xeef6ff);
     this._drawGrid();
+    this._drawBodyLayout();
 
     // Player
-    this._player = this.add.rectangle(100, 100, 24, 24, 0x8ab4d8);
+    this._player = this.add.rectangle(120, 540, 24, 24, 0x2e86de);
     this.physics.add.existing(this._player);
     this._player.body.setCollideWorldBounds(true);
 
     // Create NPCs
-    this._npcs = PHILOSOPHERS.map((p) => {
-      const npc = this.add.circle(p.x, p.y, 18, 0xc8a96e);
+    this._npcs = BODY_PARTS.map((p) => {
+      const npc = this.add.circle(p.x, p.y, 20, p.color).setInteractive({ useHandCursor: true });
       const label = this.add
         .text(p.x, p.y + 26, p.name, {
-          fontFamily: "Georgia",
+          fontFamily: "Arial",
           fontSize: "11px",
-          fill: "#f0e6d2",
+          fill: "#1f2d3d",
         })
         .setOrigin(0.5);
+      npc.on("pointerdown", () => this._chat.open(p.id, p.name));
       return { ...p, sprite: npc, label };
     });
 
     // Interaction hint
     this._hintText = this.add
       .text(400, 570, "", {
-        fontFamily: "Georgia",
+        fontFamily: "Arial",
         fontSize: "13px",
-        fill: "#a0a0d0",
+        fill: "#1f2d3d",
       })
       .setOrigin(0.5);
 
@@ -94,7 +96,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (nearestNpc) {
-      this._hintText.setText(`Press [E] to talk to ${nearestNpc.name}`);
+      this._hintText.setText(`Press [E] or click to chat with ${nearestNpc.name}`);
       if (Phaser.Input.Keyboard.JustDown(this._interactKey)) {
         this._chat.open(nearestNpc.id, nearestNpc.name);
       }
@@ -104,8 +106,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   _drawGrid() {
-    const graphics = this.add.graphics({ lineStyle: { width: 1, color: 0x2a2a4e } });
+    const graphics = this.add.graphics({ lineStyle: { width: 1, color: 0xd6eaf8 } });
     for (let x = 0; x <= 800; x += 40) graphics.lineBetween(x, 0, x, 600);
     for (let y = 0; y <= 600; y += 40) graphics.lineBetween(0, y, 800, y);
+  }
+
+  _drawBodyLayout() {
+    const body = this.add.graphics({ fillStyle: { color: 0xfdfefe, alpha: 0.95 } });
+    body.fillEllipse(400, 120, 120, 120); // head
+    body.fillRoundedRect(315, 180, 170, 330, 50); // torso
+    body.fillRoundedRect(270, 200, 35, 220, 18); // left arm
+    body.fillRoundedRect(495, 200, 35, 220, 18); // right arm
+    body.fillRoundedRect(350, 510, 40, 80, 18); // left leg
+    body.fillRoundedRect(410, 510, 40, 80, 18); // right leg
   }
 }

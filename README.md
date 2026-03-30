@@ -1,4 +1,4 @@
-# PhiloAgents – Agentic RAG NPC Engine
+# BodyAgents (formerly PhiloAgents) – Agentic RAG Educational NPC Engine
 
 > A production-grade AI system that transforms static game NPCs into intelligent, memory-driven conversational agents powered by Agentic RAG, dual-memory architecture, and real-time LLM streaming.
 
@@ -20,14 +20,14 @@
 
 ## Overview
 
-PhiloAgents replaces scripted game NPCs with intelligent philosopher characters that can:
+BodyAgents replaces scripted game NPCs with intelligent educational body-part characters that can:
 
 - **Reason** about questions using an LLM (Groq)
 - **Retrieve** relevant knowledge via MongoDB vector search (Agentic RAG)
 - **Remember** conversation history using a dual-memory system
 - **Stream** responses token-by-token in real time over WebSocket
 
-Players interact with philosophers (Socrates, Plato, Aristotle, Nietzsche, Kant) inside a Phaser.js browser game.
+Players interact with body-part NPCs (Brain, Heart, Lungs, Bones, Digestive System) inside a Phaser.js browser game.
 
 ---
 
@@ -147,7 +147,7 @@ philoagents/
 │
 ├── data-pipeline/
 │   ├── scraper/
-│   │   └── scraper.py           # Wikipedia + SEP scraper
+│   │   └── scraper.py           # Educational anatomy content scraper
 │   ├── chunking/
 │   │   └── chunker.py           # Text cleaning + chunking
 │   ├── embeddings/
@@ -157,12 +157,12 @@ philoagents/
 │   └── requirements.txt
 │
 ├── configs/
-│   ├── personas/                # Philosopher persona JSON files
-│   │   ├── socrates.json
-│   │   ├── plato.json
-│   │   ├── aristotle.json
-│   │   ├── nietzsche.json
-│   │   └── kant.json
+│   ├── personas/                # Body-part educational persona JSON files
+│   │   ├── brain.json
+│   │   ├── heart.json
+│   │   ├── lungs.json
+│   │   ├── bones.json
+│   │   └── digestive_system.json
 │   └── prompts/
 │       └── system_prompt_template.py
 │
@@ -216,7 +216,7 @@ python chunking/chunker.py
 python embeddings/embed_and_store.py
 ```
 
-Then create a **Vector Search Index** in MongoDB Atlas on the `philosopher_knowledge` collection:
+Then create a **Vector Search Index** in MongoDB Atlas on the `body_knowledge` collection:
 
 ```json
 {
@@ -240,7 +240,7 @@ Then create a **Vector Search Index** in MongoDB Atlas on the `philosopher_knowl
 ## Data Pipeline
 
 ```
-Wikipedia / SEP
+Educational anatomy sources
       │
       ▼
   scraper.py          → raw_docs.json
@@ -273,7 +273,7 @@ Key variables:
 | `RAG_TOP_K` | Number of retrieved passages | `5` |
 | `OPIK_API_KEY` | Opik API key (optional) | – |
 
-Philosopher personas are configured as JSON files under `philoagents/configs/personas/`.
+Body-part educational personas are configured as JSON files under `philoagents/configs/personas/`.
 
 ---
 
@@ -296,6 +296,6 @@ Set `OPIK_API_KEY` in `.env` to enable tracing. When not set, the system falls b
 - [ ] Animated character sprites
 - [ ] Player authentication + persistent sessions
 - [ ] Multi-turn evaluation with Opik
-- [ ] Additional philosophers
+- [ ] Additional body-part NPCs and learning modules
 - [ ] Voice synthesis (TTS streaming)
 - [ ] Deployment on AWS / GCP

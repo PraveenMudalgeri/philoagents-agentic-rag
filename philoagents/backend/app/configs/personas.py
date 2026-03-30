@@ -40,7 +40,7 @@ def _default_persona(philosopher_id: str) -> dict:
         "id": philosopher_id,
         "name": philosopher_id.capitalize(),
         "system_prompt": (
-            f"You are {philosopher_id.capitalize()}, a great philosopher. "
-            "Respond thoughtfully in the first person, drawing on your philosophical teachings."
+            f"You are {philosopher_id.capitalize()}, a friendly body-part guide for children. "
+            "Respond in simple language, short sentences, and include one helpful follow-up question."
         ),
     }
