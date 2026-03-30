@@ -22,9 +22,15 @@ async def websocket_chat(
 ):
     """Stream philosopher responses token-by-token via WebSocket."""
     await manager.connect(websocket)
-    agent = PhilosopherAgent(philosopher_id=philosopher_id)
+    logger.info(
+        f"WebSocket connected for philosopher: {philosopher_id}, session: {session_id}"
+    )
 
     try:
+        logger.info(f"Initializing PhilosopherAgent for philosopher_id: {philosopher_id}")
+        agent = PhilosopherAgent(philosopher_id=philosopher_id)
+        logger.info(f"PhilosopherAgent initialized successfully for {philosopher_id}")
+
         while True:
             user_message = await websocket.receive_text()
             logger.info(
@@ -35,23 +41,46 @@ async def websocket_chat(
             )
 
             history = await get_conversation_history(session_id)
-
             full_response = ""
-            async for token in agent.stream_response(
-                user_message=user_message,
-                conversation_history=history,
-            ):
-                await manager.send_text(token, websocket)
-                full_response += token
+            response_sent = False
+
+            try:
+                async for token in agent.stream_response(
+                    user_message=user_message,
+                    conversation_history=history,
+                ):
+                    if token and token != "[DONE]":
+                        response_sent = True
+                    await manager.send_text(token, websocket)
+                    full_response += token
+            except Exception as stream_exc:
+                logger.exception("Error during response stream: %s", stream_exc)
+                await manager.send_text(
+                    "⚠️ Sorry, I could not generate an answer right now. Please try again.",
+                    websocket,
+                )
+                await manager.send_text("[DONE]", websocket)
+                continue
+
+            if not response_sent:
+                fallback = (
+                    "⚠️ I could not generate a response with the current data. "
+                    "Try asking another simple question."
+                )
+                await manager.send_text(fallback, websocket)
+                full_response += fallback
 
             await manager.send_text("[DONE]", websocket)
-
             await save_message(session_id, "user", user_message)
             await save_message(session_id, "assistant", full_response)
 
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
         logger.info("WebSocket disconnected for session %s", session_id)
     except Exception as exc:
         logger.exception("Unexpected error in websocket_chat: %s", exc)
+    finally:
         manager.disconnect(websocket)
+        try:
+            await websocket.close()
+        except Exception:
+            pass

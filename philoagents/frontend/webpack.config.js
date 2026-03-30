@@ -12,6 +12,14 @@ module.exports = {
     static: "./dist",
     port: 3000,
     hot: true,
+    proxy: [
+      {
+        context: ['/api'],
+        target: 'http://backend:8000',
+        ws: true,
+        changeOrigin: true,
+      },
+    ],
   },
   plugins: [
     new HtmlWebpackPlugin({

@@ -24,7 +24,7 @@ def _get_sync_collection():
 
 
 async def retrieve_context(query: str, body_part_id: str) -> list[str]:
-    """Perform vector search and return top-k text passages.
+    """Perform text search and return top-k text passages.
 
     Args:
         query: The user query string.
@@ -33,25 +33,36 @@ async def retrieve_context(query: str, body_part_id: str) -> list[str]:
     Returns:
         A list of relevant text passages.
     """
-    query_vector = await embed_query(query)
     collection = _get_sync_collection()
 
+    # Use simple text search for local MongoDB (Atlas-only features not available)
     pipeline: list[dict[str, Any]] = [
         {
-            "$vectorSearch": {
-                "index": _INDEX_NAME,
-                "path": "embedding",
-                "queryVector": query_vector,
-                "numCandidates": _TOP_K * 10,
-                "limit": _TOP_K,
-                "filter": {"body_part_id": body_part_id},
+            "$match": {
+                "body_part_id": body_part_id,
+                "$text": {"$search": query}
             }
         },
-        {"$project": {"_id": 0, "text": 1, "score": {"$meta": "vectorSearchScore"}}},
+        {
+            "$project": {
+                "_id": 0,
+                "text": 1,
+                "score": {"$meta": "textScore"}
+            }
+        },
+        {"$sort": {"score": {"$meta": "textScore"}}},
+        {"$limit": _TOP_K}
     ]
 
-    results = list(collection.aggregate(pipeline))
-    passages = [doc["text"] for doc in results if "text" in doc]
+    try:
+        results = list(collection.aggregate(pipeline))
+        passages = [doc["text"] for doc in results if "text" in doc]
+    except Exception:
+        # Fallback: just get all documents for this body part
+        logger.warning("Text search failed, falling back to simple filter")
+        results = list(collection.find({"body_part_id": body_part_id}).limit(_TOP_K))
+        passages = [doc["text"] for doc in results if "text" in doc]
+
     logger.info(
         "Retrieved %d passages for body part '%s'", len(passages), body_part_id
     )

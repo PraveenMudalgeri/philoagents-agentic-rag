@@ -306,6 +306,14 @@ export class GameScene extends Phaser.Scene {
       left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
+
+    window.addEventListener("chat-opened", () => {
+      this.input.keyboard.enabled = false;
+    });
+
+    window.addEventListener("chat-closed", () => {
+      this.input.keyboard.enabled = true;
+    });
   }
 
   update() {
