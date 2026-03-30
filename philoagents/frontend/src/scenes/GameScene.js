@@ -4,6 +4,7 @@
 import { ChatManager } from "../ui/ChatManager.js";
 
 const BODY_PARTS = [
+  // Coordinates are scene pixels (origin top-left) aligned to the skeleton walkthrough image.
   { id: "brain", name: "Brain 🧠", x: 400, y: 90, color: 0xc39bd3 },
   { id: "lungs", name: "Lungs 🫁", x: 360, y: 205, color: 0x85c1e9 },
   { id: "heart", name: "Heart ❤️", x: 430, y: 220, color: 0xec7063 },
@@ -12,6 +13,10 @@ const BODY_PARTS = [
 ];
 
 const INTERACT_DISTANCE = 80;
+const BODY_IMAGE_X = 400;
+const BODY_IMAGE_Y = 300;
+const BODY_IMAGE_WIDTH = 300;
+const BODY_IMAGE_HEIGHT = 590;
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -113,7 +118,9 @@ export class GameScene extends Phaser.Scene {
 
   _drawBodyLayout() {
     if (this.textures.exists("body-walkthrough")) {
-      this.add.image(400, 300, "body-walkthrough").setDisplaySize(300, 590);
+      this.add
+        .image(BODY_IMAGE_X, BODY_IMAGE_Y, "body-walkthrough")
+        .setDisplaySize(BODY_IMAGE_WIDTH, BODY_IMAGE_HEIGHT);
       return;
     }
 
