@@ -229,6 +229,36 @@
       line-height: 1.45;
     }
 
+    #bgm-toggle {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(243, 231, 200, 0.1);
+      border: 1.5px solid rgba(236, 219, 180, 0.32);
+      color: #f5e7c7;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    #bgm-toggle:hover {
+      background: rgba(243, 231, 200, 0.18);
+      border-color: rgba(236, 219, 180, 0.52);
+      transform: scale(1.08);
+    }
+
+    #bgm-toggle:active {
+      transform: scale(0.95);
+    }
+
     @media (max-width: 960px) {
       #chat-layout {
         grid-template-columns: 1fr;
@@ -244,6 +274,8 @@
   <main id="app">
     <div id="game-container"></div>
   </main>
+
+  <button id="bgm-toggle" aria-label="Toggle background music" title="Toggle Music (M)">🔊</button>
 
   <div id="chat-overlay">
     <div id="chat-layout">
