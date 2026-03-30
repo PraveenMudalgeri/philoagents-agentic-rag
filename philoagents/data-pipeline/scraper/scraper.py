@@ -93,11 +93,12 @@ def scrape_body_part(body_part_id: str) -> Iterator[dict]:
         body_part_id: Body-part identifier key.
 
     Yields:
-        Dicts with keys: philosopher_id, url, text.
+        Dicts with keys: body_part_id, philosopher_id, url, text.
     """
     base_text = STRUCTURED_KNOWLEDGE.get(body_part_id)
     if base_text:
         yield {
+            "body_part_id": body_part_id,
             "philosopher_id": body_part_id,
             "url": "local://structured_knowledge",
             "text": base_text,
@@ -108,7 +109,12 @@ def scrape_body_part(body_part_id: str) -> Iterator[dict]:
         try:
             logger.info("Scraping %s", url)
             text = scrape_url(url)
-            yield {"philosopher_id": body_part_id, "url": url, "text": text}
+            yield {
+                "body_part_id": body_part_id,
+                "philosopher_id": body_part_id,
+                "url": url,
+                "text": text,
+            }
             time.sleep(_REQUEST_DELAY)
         except Exception as exc:
             logger.error("Failed to scrape %s: %s", url, exc)
