@@ -2,6 +2,9 @@
  * ChatManager: handles the WebSocket connection and DOM chat UI.
  */
 
+import { BodyMapPanel } from "./BodyMapPanel.js";
+import { NPC_IMAGE_MAP } from "./BodyMapPanel.js";
+
 const WS_BASE = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/v1/ws/chat`;
 
 export class ChatManager {
@@ -12,12 +15,18 @@ export class ChatManager {
     this._inputEl = document.getElementById("chat-input");
     this._sendBtn = document.getElementById("chat-send");
     this._closeBtn = document.getElementById("chat-close");
+    this._bodyMapPanelEl = document.getElementById("body-map-panel");
+    this._mediaEl = document.getElementById("npc-media");
+    this._mediaPreviewEl = document.getElementById("npc-body-preview");
+    this._mediaLabelEl = document.getElementById("npc-media-label");
 
     this._ws = null;
     this._npcId = null;
     this._sessionId = null;
     this._open = false;
     this._pendingAssistantEl = null;
+    this._bodyMapPanel = new BodyMapPanel(this._bodyMapPanelEl);
+    this._bodyMapPanel.mount();
 
     this._sendBtn.addEventListener("click", () => this._sendMessage());
     this._inputEl.addEventListener("keydown", (e) => {
@@ -44,6 +53,8 @@ export class ChatManager {
     this._npcId = npcId;
     this._sessionId = `${npcId}-${Date.now()}`;
     this._nameEl.textContent = `💬 ${npcName}`;
+    this._setNpcMedia(npcId);
+    this._bodyMapPanel.setActivePart(npcId);
     this._messagesEl.innerHTML = "";
     this._overlay.style.display = "block";
     this._open = true;
@@ -53,13 +64,20 @@ export class ChatManager {
       gameContainer.style.pointerEvents = "none";
     }
 
-    window.dispatchEvent(new CustomEvent("chat-opened"));
+    window.dispatchEvent(new CustomEvent("chat-opened", {
+      detail: {
+        npcId,
+        npcName,
+      },
+    }));
     this._connectWebSocket();
     this._inputEl.focus();
   }
 
   close() {
     this._overlay.style.display = "none";
+    this._setNpcMedia(null);
+    this._bodyMapPanel.clear();
     this._open = false;
 
     const gameContainer = document.getElementById("game-container");
@@ -72,6 +90,22 @@ export class ChatManager {
       this._ws.close();
       this._ws = null;
     }
+  }
+
+  _setNpcMedia(npcId) {
+    if (!this._mediaEl || !this._mediaPreviewEl || !this._mediaLabelEl) return;
+
+    if (!npcId || !NPC_IMAGE_MAP[npcId]) {
+      this._mediaEl.style.display = "none";
+      return;
+    }
+
+    const media = NPC_IMAGE_MAP[npcId];
+    this._mediaPreviewEl.style.backgroundImage = `url(${media.image})`;
+    this._mediaPreviewEl.style.backgroundPosition = "center";
+    this._mediaPreviewEl.style.backgroundSize = "contain";
+    this._mediaLabelEl.textContent = media.name;
+    this._mediaEl.style.display = "flex";
   }
 
   _connectWebSocket() {

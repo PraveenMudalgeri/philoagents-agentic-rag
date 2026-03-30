@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#0e1522"/>
+  <g fill="#77d4ff" stroke="#dff7ff" stroke-width="6">
+    <path d="M120 210c-28 0-50-24-50-53 0-22 14-41 34-49-2-5-4-11-4-17 0-28 22-51 50-51 15 0 29 6 39 17 9-11 23-17 38-17 28 0 51 23 51 51 0 6-2 12-4 17 20 8 34 27 34 49 0 29-22 53-50 53H120z"/>
+    <path d="M115 136c14 0 23 5 31 16" fill="none"/>
+    <path d="M254 136c-14 0-23 5-31 16" fill="none"/>
+    <path d="M153 208c12-8 24-8 36 0" fill="none"/>
+    <path d="M210 208c12-8 24-8 36 0" fill="none"/>
+  </g>
+  <text x="200" y="360" text-anchor="middle" fill="#f2d7a6" font-size="38" font-family="Arial">Brain</text>
+</svg>

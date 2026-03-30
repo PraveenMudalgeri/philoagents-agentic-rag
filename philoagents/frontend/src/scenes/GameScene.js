@@ -80,6 +80,7 @@ export class GameScene extends Phaser.Scene {
     this._createPlayer();
     this._createHud();
     this._createMinimap();
+    this._createActiveNpcHighlight();
 
     this._initAriaAccessibility();
 
@@ -102,12 +103,22 @@ export class GameScene extends Phaser.Scene {
       right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
 
-    window.addEventListener("chat-opened", () => {
+    this._onChatOpened = (event) => {
       this.input.keyboard.enabled = false;
-    });
+      this._setActiveNpcHighlight(event?.detail?.npcId || null);
+    };
 
-    window.addEventListener("chat-closed", () => {
+    this._onChatClosed = () => {
       this.input.keyboard.enabled = true;
+      this._setActiveNpcHighlight(null);
+    };
+
+    window.addEventListener("chat-opened", this._onChatOpened);
+    window.addEventListener("chat-closed", this._onChatClosed);
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      window.removeEventListener("chat-opened", this._onChatOpened);
+      window.removeEventListener("chat-closed", this._onChatClosed);
     });
   }
 
@@ -506,6 +517,63 @@ export class GameScene extends Phaser.Scene {
     this._targetLineGraphics.strokePath();
   }
 
+  _createActiveNpcHighlight() {
+    this._activeNpcId = null;
+    this._activeNpcHighlight = this.add
+      .ellipse(BODY_X, BODY_Y, 120, 80, 0x71dcff, 0.18)
+      .setDepth(9)
+      .setVisible(false);
+
+    this._activeNpcHighlightRing = this.add
+      .ellipse(BODY_X, BODY_Y, 140, 96)
+      .setStrokeStyle(3, 0xc4f3ff, 0.85)
+      .setDepth(10)
+      .setVisible(false);
+  }
+
+  _setActiveNpcHighlight(npcId) {
+    this._activeNpcId = npcId;
+
+    if (!this._activeNpcHighlight || !this._activeNpcHighlightRing) return;
+
+    this.tweens.killTweensOf(this._activeNpcHighlight);
+    this.tweens.killTweensOf(this._activeNpcHighlightRing);
+
+    if (!npcId) {
+      this._activeNpcHighlight.setVisible(false);
+      this._activeNpcHighlightRing.setVisible(false);
+      return;
+    }
+
+    const npc = this._npcs?.find((item) => item.id === npcId);
+    if (!npc) {
+      this._activeNpcHighlight.setVisible(false);
+      this._activeNpcHighlightRing.setVisible(false);
+      return;
+    }
+
+    this._activeNpcHighlight
+      .setPosition(npc.x, npc.y)
+      .setVisible(true)
+      .setScale(1);
+
+    this._activeNpcHighlightRing
+      .setPosition(npc.x, npc.y)
+      .setVisible(true)
+      .setScale(1);
+
+    this.tweens.add({
+      targets: [this._activeNpcHighlight, this._activeNpcHighlightRing],
+      alpha: { from: 0.9, to: 0.35 },
+      scaleX: { from: 0.95, to: 1.08 },
+      scaleY: { from: 0.95, to: 1.08 },
+      duration: 760,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+  }
+
   _initAriaAccessibility() {
     let ariaEl = document.getElementById("philoagents-aria-live");
     if (!ariaEl) {
@@ -664,5 +732,9 @@ export class GameScene extends Phaser.Scene {
       MARKERS[idx].x = adjusted.x;
       MARKERS[idx].y = adjusted.y;
     });
+
+    if (this._activeNpcId) {
+      this._setActiveNpcHighlight(this._activeNpcId);
+    }
   }
 }

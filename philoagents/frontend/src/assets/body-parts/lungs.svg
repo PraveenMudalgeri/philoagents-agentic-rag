@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#0d1822"/>
+  <rect x="188" y="60" width="24" height="80" rx="10" fill="#cfe8ff"/>
+  <path d="M188 140c-66 4-112 46-112 112 0 58 44 98 98 98 30 0 54-9 72-26V140z" fill="#82d9ff" stroke="#dff7ff" stroke-width="6"/>
+  <path d="M212 140c66 4 112 46 112 112 0 58-44 98-98 98-30 0-54-9-72-26V140z" fill="#82d9ff" stroke="#dff7ff" stroke-width="6"/>
+  <path d="M200 140v190" stroke="#dff7ff" stroke-width="6"/>
+  <text x="200" y="360" text-anchor="middle" fill="#f2d7a6" font-size="38" font-family="Arial">Lungs</text>
+</svg>

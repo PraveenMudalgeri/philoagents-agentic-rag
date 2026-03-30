@@ -35,7 +35,7 @@
       bottom: 18px;
       left: 50%;
       transform: translateX(-50%);
-      width: min(720px, calc(100vw - 24px));
+      width: min(1080px, calc(100vw - 24px));
       background: rgba(13, 19, 28, 0.96);
       border: 2px solid rgba(236, 219, 180, 0.38);
       border-radius: 14px;
@@ -43,6 +43,18 @@
       z-index: 100;
       color: #f5e7c7;
       box-shadow: 0 16px 46px rgba(0, 0, 0, 0.45);
+    }
+
+    #chat-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    #chat-main {
+      position: relative;
+      min-width: 0;
     }
 
     #chat-messages {
@@ -110,6 +122,122 @@
       color: #e6be77;
       margin-bottom: 10px;
     }
+
+    #npc-media {
+      width: 100%;
+      margin-bottom: 10px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(236, 219, 180, 0.2);
+      border-radius: 10px;
+      background: rgba(8, 12, 18, 0.8);
+      padding: 8px;
+    }
+
+    #npc-body-preview {
+      width: 84px;
+      height: 84px;
+      border-radius: 10px;
+      border: 1px solid rgba(236, 219, 180, 0.28);
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      background-color: rgba(17, 24, 35, 0.9);
+      box-shadow: 0 0 0 1px rgba(236, 219, 180, 0.08) inset;
+      flex-shrink: 0;
+    }
+
+    #npc-media-label {
+      color: #d9be8b;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    #body-map-panel {
+      border: 1px solid rgba(236, 219, 180, 0.2);
+      border-radius: 12px;
+      background: rgba(8, 12, 18, 0.86);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 360px;
+    }
+
+    .part-image-title {
+      color: #f1dab1;
+      font-size: 14px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .part-image-wrap {
+      flex: 1;
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      border: 1px solid rgba(236, 219, 180, 0.14);
+      background: radial-gradient(circle at 50% 35%, rgba(65, 87, 120, 0.36), rgba(10, 15, 22, 0.85));
+      overflow: hidden;
+    }
+
+    .part-image {
+      width: 100%;
+      max-width: 300px;
+      height: 300px;
+      border-radius: 12px;
+      border: 1px solid rgba(236, 219, 180, 0.2);
+      background-color: rgba(17, 24, 35, 0.9);
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transform: scale(0.96);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .part-image.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .part-image.show:hover {
+      transform: scale(1.02);
+    }
+
+    .part-image-meta {
+      border: 1px solid rgba(236, 219, 180, 0.16);
+      border-radius: 10px;
+      background: rgba(14, 20, 30, 0.85);
+      padding: 8px;
+      min-height: 70px;
+    }
+
+    .part-image-meta h4 {
+      color: #f0d4a3;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .part-image-meta p {
+      color: #e8edf8;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 960px) {
+      #chat-layout {
+        grid-template-columns: 1fr;
+      }
+
+      #body-map-panel {
+        min-height: 280px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -118,12 +246,21 @@
   </main>
 
   <div id="chat-overlay">
-    <button id="chat-close" aria-label="Close chat">✕</button>
-    <div id="npc-name"></div>
-    <div id="chat-messages"></div>
-    <div id="chat-input-row">
-      <input id="chat-input" type="text" placeholder="Ask a body question..." autocomplete="off" />
-      <button id="chat-send">Send</button>
+    <div id="chat-layout">
+      <div id="chat-main">
+        <button id="chat-close" aria-label="Close chat">✕</button>
+        <div id="npc-name"></div>
+        <div id="npc-media">
+          <div id="npc-body-preview" aria-hidden="true"></div>
+          <div id="npc-media-label">Body part preview</div>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-row">
+          <input id="chat-input" type="text" placeholder="Ask a body question..." autocomplete="off" />
+          <button id="chat-send">Send</button>
+        </div>
+      </div>
+      <aside id="body-map-panel"></aside>
     </div>
   </div>
 </body>

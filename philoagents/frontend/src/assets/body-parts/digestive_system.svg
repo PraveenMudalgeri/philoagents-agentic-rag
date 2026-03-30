@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#151720"/>
+  <path d="M130 120c12-24 48-32 74-16 10 6 22 8 34 4 20-7 43 2 52 20 10 18 4 40-12 52l-10 8c-4 3-6 8-5 13l4 18c5 25-9 50-33 58-8 2-16 3-24 1-16-3-28-15-30-30l-2-18c-1-5-4-9-8-12l-16-9c-25-14-34-45-20-69z"
+        fill="#ffb870" stroke="#ffe7cc" stroke-width="7"/>
+  <path d="M206 248c16 10 19 30 9 48" fill="none" stroke="#ffe7cc" stroke-width="7"/>
+  <text x="200" y="360" text-anchor="middle" fill="#f2d7a6" font-size="30" font-family="Arial">Digestive System</text>
+</svg>
