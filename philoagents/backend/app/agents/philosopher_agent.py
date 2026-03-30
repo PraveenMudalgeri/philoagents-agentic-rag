@@ -14,6 +14,7 @@ from app.agents.tools import build_retrieval_tool
 from app.configs.personas import load_persona
 from app.utils.opik_tracer import get_tracer
 
+MAX_RECENT_TOPICS = 5
 logger = logging.getLogger(__name__)
 
 
@@ -32,7 +33,30 @@ def _build_graph(philosopher_id: str):
     tool_node = ToolNode(tools)
 
     def agent_node(state: AgentState) -> AgentState:
-        system_prompt = SystemMessage(content=persona["system_prompt"])
+        recent_topics = []
+        for msg in reversed(state["messages"]):
+            if (
+                isinstance(msg, HumanMessage)
+                and isinstance(msg.content, str)
+                and msg.content.strip()
+            ):
+                recent_topics.append(msg.content.strip())
+                if len(recent_topics) == MAX_RECENT_TOPICS:
+                    break
+        recent_topics.reverse()
+        style_guardrails = (
+            "Keep explanations child-friendly: simple words, short sentences, and clear examples. "
+            "Avoid repeating the exact same explanation if the topic already appeared in recent messages. "
+            "When relevant, end with a short follow-up suggestion or tiny quiz question."
+        )
+        memory_hint = (
+            "Recent child questions/topics: "
+            + ("; ".join(recent_topics) if recent_topics else "none yet")
+            + ". Build on what they already asked."
+        )
+        system_prompt = SystemMessage(
+            content=f"{persona['system_prompt']}\n\n{style_guardrails}\n\n{memory_hint}"
+        )
         messages = [system_prompt] + state["messages"]
         response = llm.invoke(messages)
         return {"messages": state["messages"] + [response]}

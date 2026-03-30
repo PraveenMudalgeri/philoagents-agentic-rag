@@ -10,7 +10,7 @@ from app.rag.embeddings import embed_query
 
 logger = logging.getLogger(__name__)
 
-_COLLECTION = os.getenv("MONGODB_VECTOR_COLLECTION", "philosopher_knowledge")
+_COLLECTION = os.getenv("MONGODB_VECTOR_COLLECTION", "body_knowledge")
 _INDEX_NAME = os.getenv("MONGODB_VECTOR_INDEX", "vector_index")
 _TOP_K = int(os.getenv("RAG_TOP_K", "5"))
 
@@ -23,12 +23,12 @@ def _get_sync_collection():
     return client[db_name][_COLLECTION]
 
 
-async def retrieve_context(query: str, philosopher_id: str) -> list[str]:
+async def retrieve_context(query: str, body_part_id: str) -> list[str]:
     """Perform vector search and return top-k text passages.
 
     Args:
         query: The user query string.
-        philosopher_id: Filter results to a specific philosopher.
+        body_part_id: Filter results to a specific body-part NPC.
 
     Returns:
         A list of relevant text passages.
@@ -44,7 +44,7 @@ async def retrieve_context(query: str, philosopher_id: str) -> list[str]:
                 "queryVector": query_vector,
                 "numCandidates": _TOP_K * 10,
                 "limit": _TOP_K,
-                "filter": {"philosopher_id": philosopher_id},
+                "filter": {"body_part_id": body_part_id},
             }
         },
         {"$project": {"_id": 0, "text": 1, "score": {"$meta": "vectorSearchScore"}}},
@@ -53,6 +53,6 @@ async def retrieve_context(query: str, philosopher_id: str) -> list[str]:
     results = list(collection.aggregate(pipeline))
     passages = [doc["text"] for doc in results if "text" in doc]
     logger.info(
-        "Retrieved %d passages for philosopher '%s'", len(passages), philosopher_id
+        "Retrieved %d passages for body part '%s'", len(passages), body_part_id
     )
     return passages

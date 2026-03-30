@@ -62,17 +62,17 @@ def process_documents(raw_docs: list[dict]) -> Iterator[dict]:
     """Clean and chunk a list of raw documents.
 
     Args:
-        raw_docs: Documents with 'philosopher_id', 'url', 'text'.
+        raw_docs: Documents with 'body_part_id', 'url', 'text'.
 
     Yields:
-        Chunk dicts with 'philosopher_id', 'url', 'chunk_index', 'text'.
+        Chunk dicts with 'body_part_id', 'url', 'chunk_index', 'text'.
     """
     for doc in raw_docs:
         cleaned = clean_text(doc.get("text", ""))
         chunks = chunk_text(cleaned)
         for i, chunk in enumerate(chunks):
             yield {
-                "philosopher_id": doc["philosopher_id"],
+                "body_part_id": doc["body_part_id"],
                 "url": doc.get("url", ""),
                 "chunk_index": i,
                 "text": chunk,

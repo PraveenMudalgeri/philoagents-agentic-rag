@@ -7,14 +7,14 @@ const WS_BASE = `ws://${window.location.hostname}:8000/api/v1/ws/chat`;
 export class ChatManager {
   constructor() {
     this._overlay = document.getElementById("chat-overlay");
-    this._nameEl = document.getElementById("philosopher-name");
+    this._nameEl = document.getElementById("npc-name");
     this._messagesEl = document.getElementById("chat-messages");
     this._inputEl = document.getElementById("chat-input");
     this._sendBtn = document.getElementById("chat-send");
     this._closeBtn = document.getElementById("chat-close");
 
     this._ws = null;
-    this._philosopherId = null;
+    this._npcId = null;
     this._sessionId = null;
     this._open = false;
     this._pendingAssistantEl = null;
@@ -30,10 +30,10 @@ export class ChatManager {
     return this._open;
   }
 
-  open(philosopherId, philosopherName) {
-    this._philosopherId = philosopherId;
-    this._sessionId = `${philosopherId}-${Date.now()}`;
-    this._nameEl.textContent = `💬 ${philosopherName}`;
+  open(npcId, npcName) {
+    this._npcId = npcId;
+    this._sessionId = `${npcId}-${Date.now()}`;
+    this._nameEl.textContent = `💬 ${npcName}`;
     this._messagesEl.innerHTML = "";
     this._overlay.style.display = "block";
     this._open = true;
@@ -51,7 +51,7 @@ export class ChatManager {
   }
 
   _connectWebSocket() {
-    const url = `${WS_BASE}/${this._philosopherId}/${this._sessionId}`;
+    const url = `${WS_BASE}/${this._npcId}/${this._sessionId}`;
     this._ws = new WebSocket(url);
 
     this._ws.onopen = () => {
@@ -65,7 +65,7 @@ export class ChatManager {
         return;
       }
       if (!this._pendingAssistantEl) {
-        this._pendingAssistantEl = this._appendMessage("philosopher", "");
+        this._pendingAssistantEl = this._appendMessage("npc", "");
       }
       this._pendingAssistantEl.textContent += token;
       this._messagesEl.scrollTop = this._messagesEl.scrollHeight;
@@ -92,7 +92,7 @@ export class ChatManager {
 
   /**
    * Append a message line to the chat box.
-   * @param {"user"|"philosopher"} role
+   * @param {"user"|"npc"} role
    * @param {string} content
    * @returns {HTMLElement} The created span element (allows streaming append).
    */

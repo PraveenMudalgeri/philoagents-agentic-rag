@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PhiloAgents</title>
+  <title>BodyAgents</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    body { background: #eaf4ff; display: flex; justify-content: center; align-items: center; height: 100vh; }
     #game-container { position: relative; }
     #chat-overlay {
       display: none;
@@ -15,13 +15,13 @@
       left: 50%;
       transform: translateX(-50%);
       width: 600px;
-      background: rgba(0, 0, 0, 0.85);
-      border: 1px solid #a0a0d0;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #9ec5fe;
       border-radius: 8px;
       padding: 16px;
       z-index: 100;
-      font-family: 'Georgia', serif;
-      color: #f0e6d2;
+      font-family: Arial, sans-serif;
+      color: #1f2d3d;
     }
     #chat-messages {
       height: 200px;
@@ -30,39 +30,39 @@
       font-size: 14px;
       line-height: 1.6;
     }
-    #chat-messages .philosopher { color: #c8a96e; font-weight: bold; }
-    #chat-messages .user { color: #8ab4d8; }
+    #chat-messages .npc { color: #0d6efd; font-weight: bold; }
+    #chat-messages .user { color: #2f3e46; }
     #chat-input-row { display: flex; gap: 8px; }
     #chat-input {
       flex: 1;
-      background: #0d0d1a;
-      border: 1px solid #a0a0d0;
+      background: #ffffff;
+      border: 1px solid #9ec5fe;
       border-radius: 4px;
-      color: #f0e6d2;
+      color: #1f2d3d;
       padding: 8px 12px;
-      font-family: 'Georgia', serif;
+      font-family: Arial, sans-serif;
       font-size: 14px;
     }
     #chat-send {
-      background: #4a4a8a;
-      color: #f0e6d2;
+      background: #0d6efd;
+      color: #ffffff;
       border: none;
       border-radius: 4px;
       padding: 8px 16px;
       cursor: pointer;
-      font-family: 'Georgia', serif;
+      font-family: Arial, sans-serif;
     }
-    #chat-send:hover { background: #6a6aaa; }
+    #chat-send:hover { background: #0b5ed7; }
     #chat-close {
       position: absolute;
       top: 8px; right: 12px;
       background: none; border: none;
-      color: #a0a0d0; cursor: pointer; font-size: 18px;
+      color: #5a6a85; cursor: pointer; font-size: 18px;
     }
-    #philosopher-name {
+    #npc-name {
       font-size: 16px;
       font-weight: bold;
-      color: #c8a96e;
+      color: #0d6efd;
       margin-bottom: 10px;
     }
   </style>
@@ -73,10 +73,10 @@
   <!-- Chat UI overlay (shown when player interacts with an NPC) -->
   <div id="chat-overlay">
     <button id="chat-close" aria-label="Close chat">✕</button>
-    <div id="philosopher-name"></div>
+    <div id="npc-name"></div>
     <div id="chat-messages"></div>
     <div id="chat-input-row">
-      <input id="chat-input" type="text" placeholder="Ask a question..." autocomplete="off" />
+      <input id="chat-input" type="text" placeholder="Ask a body question..." autocomplete="off" />
       <button id="chat-send">Send</button>
     </div>
   </div>
