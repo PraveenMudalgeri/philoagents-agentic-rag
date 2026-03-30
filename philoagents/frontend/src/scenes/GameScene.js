@@ -187,6 +187,27 @@ export class GameScene extends Phaser.Scene {
       28,
     );
     border.setDepth(3);
+
+    this.add
+      .text(BODY_X, BODY_Y - BODY_HEIGHT / 2 - 160, "BODY MAP", {
+        fontFamily: "Georgia",
+        fontSize: "82px",
+        fontStyle: "bold",
+        color: "#fff8d8",
+        stroke: "#ffe4ba",
+        strokeThickness: 12,
+        shadow: {
+          offsetX: 0,
+          offsetY: 0,
+          color: "#ffd760",
+          blur: 50,
+          stroke: true,
+          fill: true,
+        },
+      })
+      .setOrigin(0.5, 0)
+      .setDepth(10)
+      .setScrollFactor(1);
   }
 
   _createMarkers() {
@@ -249,15 +270,28 @@ export class GameScene extends Phaser.Scene {
     const viewportWidth = this.scale.width;
     const viewportHeight = this.scale.height;
 
-    this.add
-      .text(40, 26, "BODY MAP", {
+    this._mapTitle = this.add
+      .text(viewportWidth / 2, 10, "BODY MAP", {
         fontFamily: "Georgia",
-        fontSize: "34px",
+        fontSize: "68px",
         fontStyle: "bold",
-        color: "#f5e7c7",
+        color: "#f9e69e",
+        stroke: "#ffffff",
+        strokeThickness: 6,
+        shadow: {
+          offsetX: 0,
+          offsetY: 0,
+          color: "#ffeea2",
+          blur: 28,
+          stroke: true,
+          fill: true,
+        },
       })
+      .setOrigin(0.5, 0)
       .setScrollFactor(0)
       .setDepth(30);
+
+    this._mapTitle.setPipeline("Light2D");
 
     this.add
       .text(
@@ -382,7 +416,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   _handleResize(gameSize) {
-    if (!this._hintText) return;
-    this._hintText.setPosition(gameSize.width / 2, gameSize.height - 42);
+    if (this._hintText) {
+      this._hintText.setPosition(gameSize.width / 2, gameSize.height - 42);
+    }
+    if (this._mapTitle) {
+      this._mapTitle.setPosition(gameSize.width / 2, 24);
+      const scaleFactor = Math.max(1, gameSize.width / 900);
+      this._mapTitle.setFontSize(42 * scaleFactor);
+    }
   }
 }
