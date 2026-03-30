@@ -59,8 +59,15 @@ class PhilosopherAgent:
             logger.warning("RAG retrieval failed: %s", err)
 
         system_content = f"{self._persona['system_prompt']}\n\n{style_guardrails}"
+
         if retrieval_context:
             system_content += f"\n\nRelevant knowledge from body part '{self.philosopher_id}':\n{retrieval_context}"
+        else:
+            system_content += (
+                "\n\nNote: No directly relevant body-part knowledge was found for this query. "
+                "Answer only from the verified knowledge above and integrity; if unknown, admit uncertainty "
+                "instead of giving a generic or unrelated answer."
+            )
 
         messages = [SystemMessage(content=system_content)] + history_messages + [HumanMessage(content=user_message)]
 

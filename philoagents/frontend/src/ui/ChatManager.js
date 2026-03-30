@@ -132,13 +132,17 @@ export class ChatManager {
 
     this._ws.onerror = (err) => {
       console.error("[ChatManager] WebSocket error", err);
-      console.error("[ChatManager] WebSocket state:", this._ws.readyState);
+      if (this._ws) {
+        console.error("[ChatManager] WebSocket state:", this._ws.readyState);
+      }
       this._appendMessage("npc", "❌ Connection error. Check browser console.");
     };
 
     this._ws.onclose = () => {
       console.log("[ChatManager] WebSocket closed");
-      console.log("[ChatManager] WebSocket state:", this._ws.readyState);
+      if (this._ws) {
+        console.log("[ChatManager] WebSocket state:", this._ws.readyState);
+      }
     };
   }
 

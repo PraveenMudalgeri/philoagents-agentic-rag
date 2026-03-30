@@ -241,8 +241,7 @@ export class GameScene extends Phaser.Scene {
     this._player.setDepth(20);
     this._player.setCollideWorldBounds(true);
 
-    this.cameras.main.stopFollow();
-    this.cameras.main.centerOn(BODY_X, BODY_Y + 120);
+    this.cameras.main.startFollow(this._player);
     this.cameras.main.setZoom(1);
   }
 
