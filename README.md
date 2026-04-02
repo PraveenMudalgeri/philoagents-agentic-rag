@@ -62,20 +62,20 @@ Key flow: user message → short-term history → optional retrieval → final p
 ```mermaid
 flowchart LR
 	subgraph Frontend
-		A[Phaser.js Frontend\nChat UI / ChatManager]
+		A["Phaser.js Frontend<br>Chat UI / ChatManager"]
 	end
 	subgraph Backend
-		B[FastAPI\nWebSocket: /api/v1/ws/chat/{philosopher_id}/{session_id}]
-		C[ConnectionManager\nWebSocket manager]
-		D[PhilosopherAgent\nLangGraph + ChatGroq]
-		E[Retrieval Tool\nphiloagents/backend/app/rag/retriever.py]
-		F[Opik Tracer\n(opik tracer)]
+		B["FastAPI<br>WebSocket: /api/v1/ws/chat/:philosopher_id/:session_id"]
+		C["ConnectionManager<br>WebSocket manager"]
+		D["PhilosopherAgent<br>LangGraph + ChatGroq"]
+		E["Retrieval Tool<br>philoagents/backend/app/rag/retriever.py"]
+		F["Opik Tracer<br>(opik tracer)"]
 	end
 	subgraph DB
-		G[MongoDB\nconversations & body_knowledge (vectors)]
+		G["MongoDB<br>conversations & body_knowledge (vectors)"]
 	end
 	subgraph Pipeline
-		H[Data Pipeline\nscraper → chunker → embeddings → upsert]
+		H["Data Pipeline<br>scraper → chunker → embeddings → upsert"]
 	end
 
 	A -->|WebSocket| B
