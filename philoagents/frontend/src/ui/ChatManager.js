@@ -25,8 +25,20 @@ export class ChatManager {
     this._sessionId = null;
     this._open = false;
     this._pendingAssistantEl = null;
+    this._selectedBrainLobe = null;
+    this._voiceBtn = document.getElementById("chat-voice");
+    this._speechRecognition = null;
+    this._isListening = false;
     this._bodyMapPanel = new BodyMapPanel(this._bodyMapPanelEl);
     this._bodyMapPanel.mount();
+
+    this._initializeVoiceInput();
+
+    window.addEventListener("brain-lobe-selected", (event) => {
+      const selectedLobe = event?.detail?.lobeId || null;
+      this._selectedBrainLobe = selectedLobe;
+      console.log("[ChatManager] Selected brain lobe:", selectedLobe);
+    });
 
     this._sendBtn.addEventListener("click", () => this._sendMessage());
     this._inputEl.addEventListener("keydown", (e) => {
@@ -52,6 +64,7 @@ export class ChatManager {
   open(npcId, npcName) {
     this._npcId = npcId;
     this._sessionId = `${npcId}-${Date.now()}`;
+    this._selectedBrainLobe = null;
     this._nameEl.textContent = `💬 ${npcName}`;
     this._setNpcMedia(npcId);
     this._bodyMapPanel.setActivePart(npcId);
@@ -78,6 +91,10 @@ export class ChatManager {
     this._overlay.style.display = "none";
     this._setNpcMedia(null);
     this._bodyMapPanel.clear();
+    this._selectedBrainLobe = null;
+    if (this._speechRecognition && this._isListening) {
+      this._speechRecognition.stop();
+    }
     this._open = false;
 
     const gameContainer = document.getElementById("game-container");
@@ -106,6 +123,71 @@ export class ChatManager {
     this._mediaPreviewEl.style.backgroundSize = "contain";
     this._mediaLabelEl.textContent = media.name;
     this._mediaEl.style.display = "flex";
+  }
+
+  _initializeVoiceInput() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition || !this._voiceBtn) {
+      if (this._voiceBtn) {
+        this._voiceBtn.disabled = true;
+        this._voiceBtn.title = "Voice input is not supported in this browser.";
+      }
+      return;
+    }
+
+    this._speechRecognition = new SpeechRecognition();
+    this._speechRecognition.lang = navigator.language || "en-US";
+    this._speechRecognition.interimResults = false;
+    this._speechRecognition.maxAlternatives = 1;
+    this._speechRecognition.continuous = false;
+
+    this._speechRecognition.addEventListener("result", (event) => {
+      const transcript = event.results[0][0].transcript?.trim();
+      if (!transcript) return;
+      this._inputEl.value = transcript;
+      this._sendMessage();
+    });
+
+    this._speechRecognition.addEventListener("end", () => {
+      this._setVoiceListening(false);
+    });
+
+    this._speechRecognition.addEventListener("error", (event) => {
+      console.warn("[ChatManager] Voice recognition error", event.error);
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        this._voiceBtn.disabled = true;
+      }
+      this._setVoiceListening(false);
+    });
+
+    this._voiceBtn.addEventListener("click", () => this._toggleVoiceListening());
+    this._voiceBtn.title = "Click to start voice input";
+  }
+
+  _toggleVoiceListening() {
+    if (!this._speechRecognition || !this._voiceBtn) return;
+
+    if (this._isListening) {
+      this._speechRecognition.stop();
+      return;
+    }
+
+    try {
+      this._speechRecognition.start();
+      this._setVoiceListening(true);
+    } catch (err) {
+      console.error("[ChatManager] Failed to start speech recognition", err);
+      this._setVoiceListening(false);
+    }
+  }
+
+  _setVoiceListening(active) {
+    this._isListening = active;
+    if (!this._voiceBtn) return;
+
+    this._voiceBtn.classList.toggle("enabled", active);
+    this._voiceBtn.textContent = active ? "⏹️" : "🎙️";
+    this._voiceBtn.title = active ? "Click to stop voice recording" : "Click to start voice input";
   }
 
   _connectWebSocket() {
@@ -200,7 +282,14 @@ export class ChatManager {
     }
 
     this._appendMessage("user", text);
-    this._ws.send(text);
+    const payload = {
+      text,
+      role: "user",
+    };
+    if (this._npcId === "brain" && this._selectedBrainLobe) {
+      payload.selectedLobe = this._selectedBrainLobe;
+    }
+    this._ws.send(JSON.stringify(payload));
     this._inputEl.value = "";
     this._messagesEl.scrollTop = this._messagesEl.scrollHeight;
   }

@@ -80,6 +80,7 @@ export class BodyMapPanel {
     this._descEl = null;
     this._svgWrap = null;
     this._infoCard = null;
+    this._selectedLobe = null;
   }
 
   mount() {
@@ -118,8 +119,10 @@ export class BodyMapPanel {
     if (this._descEl) this._descEl.textContent = part.description;
 
     if (partId === "brain") {
+      this._setSelectedLobe(null);
       this._showBrainSVG();
     } else {
+      this._setSelectedLobe(null);
       this._showStaticImage(part);
     }
   }
@@ -137,6 +140,7 @@ export class BodyMapPanel {
     if (this._infoCard) {
       this._infoCard.innerHTML = `<p style="margin:0;font-size:12px;color:#d9be8b;font-style:italic;">Click a coloured region to learn about that brain lobe.</p>`;
     }
+    this._setSelectedLobe(null);
   }
 
   _showStaticImage(part) {
@@ -150,6 +154,17 @@ export class BodyMapPanel {
       this._imageEl.style.backgroundSize = "contain";
       window.requestAnimationFrame(() => this._imageEl.classList.add("show"));
     }
+  }
+
+  _setSelectedLobe(lobeId) {
+    const normalized = lobeId || null;
+    if (this._selectedLobe === normalized) return;
+    this._selectedLobe = normalized;
+    window.dispatchEvent(
+      new CustomEvent("brain-lobe-selected", {
+        detail: { lobeId: this._selectedLobe },
+      }),
+    );
   }
 
   _showBrainSVG() {
@@ -255,6 +270,7 @@ export class BodyMapPanel {
         node.addEventListener("click", () => {
           allLobeIds.forEach((resetId) => resetLobe(lobeMap.get(resetId)));
           activateLobe(nodes, lobeData);
+          this._setSelectedLobe(lobeId);
 
           if (this._infoCard) {
             this._infoCard.innerHTML = `
