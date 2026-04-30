@@ -23,23 +23,27 @@ def _get_sync_collection():
     return client[db_name][_COLLECTION]
 
 
-async def retrieve_context(query: str, body_part_id: str) -> list[str]:
+async def retrieve_context(query: str, body_part_id: str, body_part_sub_id: str | None = None) -> list[str]:
     """Perform text search and return top-k text passages.
 
     Args:
         query: The user query string.
         body_part_id: Filter results to a specific body-part NPC.
+        body_part_sub_id: Optional subpart identifier, such as a brain lobe.
 
     Returns:
         A list of relevant text passages.
     """
     collection = _get_sync_collection()
+    match_filter: dict[str, Any] = {"body_part_id": body_part_id}
+    if body_part_sub_id:
+        match_filter["body_part_sub_id"] = body_part_sub_id
 
     # Use simple text search for local MongoDB (Atlas-only features not available)
     pipeline: list[dict[str, Any]] = [
         {
             "$match": {
-                "body_part_id": body_part_id,
+                **match_filter,
                 "$text": {"$search": query}
             }
         },
@@ -76,7 +80,7 @@ async def retrieve_context(query: str, body_part_id: str) -> list[str]:
 
             raw_docs = list(
                 collection.find(
-                    {"body_part_id": body_part_id, "embedding": {"$exists": True}},
+                    {**match_filter, "embedding": {"$exists": True}},
                     {"text": 1, "embedding": 1},
                 )
             )

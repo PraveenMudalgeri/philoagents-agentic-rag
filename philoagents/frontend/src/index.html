@@ -79,6 +79,31 @@
       gap: 8px;
     }
 
+    #chat-voice {
+      background: rgba(243, 231, 200, 0.12);
+      color: #f5e7c7;
+      border: 1px solid rgba(236, 219, 180, 0.26);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      min-width: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #chat-voice.enabled {
+      background: #f3e7c8;
+      color: #22180f;
+    }
+
+    #chat-voice:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
     #chat-input {
       flex: 1;
       background: rgba(8, 12, 18, 0.95);
@@ -289,6 +314,7 @@
         <div id="chat-messages"></div>
         <div id="chat-input-row">
           <input id="chat-input" type="text" placeholder="Ask a body question..." autocomplete="off" />
+          <button id="chat-voice" type="button" aria-label="Start voice input">🎙️</button>
           <button id="chat-send">Send</button>
         </div>
       </div>

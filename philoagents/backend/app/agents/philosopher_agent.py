@@ -14,6 +14,15 @@ from app.utils.opik_tracer import get_tracer
 MAX_RECENT_TOPICS = 5
 logger = logging.getLogger(__name__)
 
+BRAIN_LOBE_LABELS = {
+    "frontal": "Frontal Lobe",
+    "parietal": "Parietal Lobe",
+    "temporal": "Temporal Lobe",
+    "occipital": "Occipital Lobe",
+    "cerebellum": "Cerebellum",
+    "brainstem": "Brain Stem",
+}
+
 
 class PhilosopherAgent:
     """Simplified philosopher agent (direct Groq streaming + optional RAG context)."""
@@ -32,6 +41,7 @@ class PhilosopherAgent:
         self,
         user_message: str,
         conversation_history: list[dict],
+        selected_lobe: str | None = None,
     ) -> AsyncIterator[str]:
         """Yield LLM response tokens for the given user message."""
         # Build system prompt with safety/style guidelines.
@@ -52,13 +62,25 @@ class PhilosopherAgent:
 
         retrieval_context = ""
         try:
-            docs = await retrieve_context(query=user_message, body_part_id=self.philosopher_id)
+            docs = await retrieve_context(
+                query=user_message,
+                body_part_id=self.philosopher_id,
+                body_part_sub_id=selected_lobe,
+            )
             if docs:
                 retrieval_context = "\n\n".join(docs)
         except Exception as err:
             logger.warning("RAG retrieval failed: %s", err)
 
         system_content = f"{self._persona['system_prompt']}\n\n{style_guardrails}"
+
+        if selected_lobe and self.philosopher_id == "brain":
+            lobe_label = BRAIN_LOBE_LABELS.get(selected_lobe, selected_lobe)
+            system_content += (
+                f"\n\nThe user has selected the {lobe_label} in the brain diagram. "
+                "Answer questions with respect to that specific brain region whenever it is relevant. "
+                "Keep your response focused on the selected lobe and do not drift to unrelated brain areas."
+            )
 
         if retrieval_context:
             system_content += f"\n\nRelevant knowledge from body part '{self.philosopher_id}':\n{retrieval_context}"

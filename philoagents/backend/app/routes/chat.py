@@ -1,5 +1,6 @@
 """Chat route: handles both REST and WebSocket conversations."""
 
+import json
 import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -19,6 +20,7 @@ async def websocket_chat(
     websocket: WebSocket,
     philosopher_id: str,
     session_id: str,
+    selected_lobe: str | None = None,
 ):
     """Stream philosopher responses token-by-token via WebSocket."""
     await manager.connect(websocket)
@@ -31,8 +33,20 @@ async def websocket_chat(
         agent = PhilosopherAgent(philosopher_id=philosopher_id)
         logger.info(f"PhilosopherAgent initialized successfully for {philosopher_id}")
 
+        current_selected_lobe = selected_lobe
         while True:
-            user_message = await websocket.receive_text()
+            raw_message = await websocket.receive_text()
+            user_message = raw_message
+            if raw_message.strip().startswith("{"):
+                try:
+                    payload = json.loads(raw_message)
+                    if isinstance(payload, dict):
+                        user_message = payload.get("text", user_message)
+                        if payload.get("selectedLobe") is not None:
+                            current_selected_lobe = payload.get("selectedLobe") or None
+                except json.JSONDecodeError:
+                    pass
+
             logger.info(
                 "Received message for %s [session=%s]: %s",
                 philosopher_id,
@@ -48,6 +62,7 @@ async def websocket_chat(
                 async for token in agent.stream_response(
                     user_message=user_message,
                     conversation_history=history,
+                    selected_lobe=current_selected_lobe,
                 ):
                     if token and token != "[DONE]":
                         response_sent = True
