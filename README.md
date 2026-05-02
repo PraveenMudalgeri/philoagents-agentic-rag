@@ -110,7 +110,14 @@ cp .env.example .env
 2. Start with Docker Compose:
 
 ```bash
-docker-compose up --build
+docker compose up
+```
+
+First time only (or after Dockerfile or requirements changes):
+
+```bash
+docker compose build backend
+docker compose up
 ```
 
 Default services:

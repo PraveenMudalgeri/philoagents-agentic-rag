@@ -23,6 +23,9 @@ services:
       - PYTHONUNBUFFERED=1
     depends_on:
       - mongodb
+    command: >
+      sh -c "python -c 'import fastapi, uvicorn' >/dev/null 2>&1 || pip install --no-cache-dir -r requirements.txt;
+      uvicorn app.main:app --host 0.0.0.0 --port 8000"
     restart: unless-stopped
 
   frontend:
@@ -31,7 +34,13 @@ services:
     working_dir: /app
     volumes:
       - ./philoagents/frontend:/app
-    command: sh -c "npm install && npm run dev"
+      - philoagents_frontend_node_modules:/app/node_modules
+    command: >
+      sh -c "PKG_HASH=$$(sha256sum package.json | awk '{print $$1}');
+      if [ ! -d node_modules ] || [ ! -f node_modules/.pkg_hash ] || [ \"$$(cat node_modules/.pkg_hash 2>/dev/null)\" != \"$$PKG_HASH\" ]; then
+        npm install && echo \"$$PKG_HASH\" > node_modules/.pkg_hash;
+      fi;
+      npm run dev"
     ports:
       - "3000:3000"
     depends_on:
@@ -41,3 +50,4 @@ services:
 
 volumes:
   mongodb_data:
+  philoagents_frontend_node_modules:
