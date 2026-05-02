@@ -25,77 +25,128 @@ export class MainMenuScene extends Phaser.Scene {
     this.children.removeAll(true);
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x0a0d12);
-    this._drawBackdrop(width, height);
+    const frame = this._drawBackdrop(width, height);
 
-    const imageWidth = Math.min(340, Math.max(240, width * 0.24));
-    const imageHeight = imageWidth * 1.5;
-    this.add
-      .image(width * 0.72, height / 2 + 20, "body-map")
-      .setDisplaySize(imageWidth, imageHeight)
-      .setAlpha(0.95);
+    const isMobile = width < 920;
+    const contentPadX = Math.max(18, Math.min(44, width * 0.035));
+    const contentPadY = Math.max(20, Math.min(36, height * 0.05));
+    const contentLeft = frame.x + contentPadX;
+    const contentRight = frame.x + frame.width - contentPadX;
+    const contentTop = frame.y + contentPadY;
+    const contentBottom = frame.y + frame.height - contentPadY;
+    const contentWidth = contentRight - contentLeft;
+    const contentHeight = contentBottom - contentTop;
 
-    this.add
-      .text(width * 0.12, height * 0.16, "BODYAGENTS", {
+    const leftRatio = isMobile ? 1 : 0.58;
+    const leftWidth = Math.max(260, contentWidth * leftRatio);
+    const rightWidth = Math.max(180, contentWidth - leftWidth);
+
+    const leftX = isMobile
+      ? width / 2
+      : contentLeft + leftWidth * 0.06;
+    const textWidth = isMobile
+      ? Math.min(contentWidth * 0.92, 540)
+      : Math.min(leftWidth * 0.84, 560);
+
+    const title = this.add
+      .text(leftX, contentTop + (isMobile ? contentHeight * 0.44 : contentHeight * 0.06), "BODYAGENTS", {
         fontFamily: "Georgia",
-        fontSize: `${Math.round(Math.max(42, Math.min(64, width * 0.055)))}px`,
+        fontSize: `${Math.round(Math.max(36, Math.min(66, width * 0.056)))}px`,
         fontStyle: "bold",
         color: "#f6e7c1",
       })
+      .setOrigin(isMobile ? 0.5 : 0, 0)
       .setShadow(0, 4, "#000000", 8, false, true);
 
-    this.add.text(
-      width * 0.12,
-      height * 0.25,
+    const bodyCopy = this.add.text(
+      leftX,
+      title.y + title.height + 14,
       "A human-body map inspired by the PhiloAgents town UI.",
       {
         fontFamily: "Arial",
-        fontSize: "20px",
+        fontSize: `${Math.round(isMobile ? 24 : 20)}px`,
         color: "#d7d2c1",
-        wordWrap: { width: Math.min(420, width * 0.34) },
+        align: isMobile ? "center" : "left",
+        wordWrap: { width: textWidth },
         lineSpacing: 6,
       },
-    );
+    ).setOrigin(isMobile ? 0.5 : 0, 0);
 
-    this.add.text(
-      width * 0.12,
-      height * 0.35,
+    const bodyNote = this.add.text(
+      leftX,
+      bodyCopy.y + bodyCopy.height + 18,
       "Only your attached body image is used in this experience.",
       {
         fontFamily: "Arial",
         fontSize: "18px",
         color: "#c7b48d",
-        wordWrap: { width: Math.min(380, width * 0.3) },
+        align: isMobile ? "center" : "left",
+        wordWrap: { width: Math.min(textWidth, 460) },
         lineSpacing: 6,
       },
+    ).setOrigin(isMobile ? 0.5 : 0, 0);
+
+    const imageAreaX = isMobile
+      ? width / 2
+      : contentLeft + leftWidth + rightWidth * 0.5;
+    const imageAreaY = isMobile
+      ? contentTop + contentHeight * 0.21
+      : contentTop + contentHeight * 0.52;
+    const maxImageW = isMobile
+      ? Math.min(220, contentWidth * 0.5)
+      : Math.min(360, rightWidth * 0.9);
+    const imageWidth = Math.max(170, maxImageW);
+    const imageHeight = imageWidth * 1.5;
+
+    this.add
+      .image(imageAreaX, imageAreaY, "body-map")
+      .setDisplaySize(imageWidth, imageHeight)
+      .setAlpha(0.95)
+      .setDepth(1);
+
+    const buttonWidth = isMobile ? Math.min(340, contentWidth * 0.9) : 300;
+    const buttonHeight = 56;
+    const buttonX = isMobile
+      ? width / 2 - buttonWidth / 2
+      : leftX;
+    const btnStartY = Math.min(
+      contentBottom - buttonHeight * 2 - 16,
+      bodyNote.y + bodyNote.height + 36,
     );
 
-    const buttonX = Math.max(100, width * 0.5 - 170);
-    this._createButton(buttonX, height * 0.68, "Enter Body Map", () => {
+    this._createButton(buttonX, btnStartY, "Enter Body Map", () => {
       ensureLightBgmPlaying();
       this.scene.start("GameScene");
-    });
+    }, buttonWidth, buttonHeight);
 
-    this._createButton(buttonX, height * 0.78, "Instructions", () => {
+    this._createButton(buttonX, btnStartY + buttonHeight + 16, "Instructions", () => {
       this._showInstructions();
-    });
+    }, buttonWidth, buttonHeight);
   }
 
   _drawBackdrop(width, height) {
+    const marginX = Math.max(12, Math.min(72, width * 0.06));
+    const marginY = Math.max(12, Math.min(72, height * 0.08));
+    const frameX = marginX;
+    const frameY = marginY;
+    const frameW = width - marginX * 2;
+    const frameH = height - marginY * 2;
+
     const graphics = this.add.graphics();
     graphics.fillStyle(0x121925, 1);
-    graphics.fillRoundedRect(72, 72, width - 144, height - 144, 28);
+    graphics.fillRoundedRect(frameX, frameY, frameW, frameH, 28);
     graphics.lineStyle(2, 0x66573a, 0.9);
-    graphics.strokeRoundedRect(72, 72, width - 144, height - 144, 28);
+    graphics.strokeRoundedRect(frameX, frameY, frameW, frameH, 28);
 
     graphics.lineStyle(1, 0x322819, 0.55);
-    for (let y = 98; y < height - 96; y += 26) {
-      graphics.lineBetween(90, y, width - 90, y);
+    for (let y = frameY + 26; y < frameY + frameH - 24; y += 26) {
+      graphics.lineBetween(frameX + 18, y, frameX + frameW - 18, y);
     }
+
+    return { x: frameX, y: frameY, width: frameW, height: frameH };
   }
 
-  _createButton(x, y, label, onClick) {
-    const buttonWidth = 300;
-    const buttonHeight = 56;
+  _createButton(x, y, label, onClick, buttonWidth = 300, buttonHeight = 56) {
     const radius = 18;
 
     const shadow = this.add.graphics();

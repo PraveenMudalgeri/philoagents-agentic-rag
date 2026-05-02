@@ -60,6 +60,7 @@ export class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: "GameScene" });
     this._chat = new ChatManager();
+    this._markerDefs = MARKERS.map((marker) => ({ ...marker }));
   }
 
   create() {
@@ -199,26 +200,30 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  _getBodyMapScale() {
+    // Keep world geometry fixed to avoid marker drift on fullscreen resize.
+    return 1;
+  }
+
   _drawBodyMap() {
-    this._bodyMapScale = Phaser.Math.Clamp(this.scale.width / 1100, 0.9, 1.25);
+    this._bodyMapScale = this._getBodyMapScale();
     const mapWidth = BODY_WIDTH * this._bodyMapScale;
     const mapHeight = BODY_HEIGHT * this._bodyMapScale;
 
-    const bodyMapImage = this.add
+    this._bodyMapImage = this.add
       .image(BODY_X, BODY_Y, "body-map")
       .setDisplaySize(mapWidth, mapHeight)
       .setDepth(2);
 
-    const border = this.add.graphics();
-    border.lineStyle(3, 0xe8d4af, 0.95);
-    border.strokeRoundedRect(
+    this._bodyMapBorder = this.add.graphics().setDepth(3);
+    this._bodyMapBorder.lineStyle(3, 0xe8d4af, 0.95);
+    this._bodyMapBorder.strokeRoundedRect(
       BODY_X - mapWidth / 2 - 16,
       BODY_Y - mapHeight / 2 - 16,
       mapWidth + 32,
       mapHeight + 32,
       28,
     );
-    border.setDepth(3);
 
     const titleY = BODY_Y - mapHeight / 2 - 120;
     this._bodyMapTitle = this.add
@@ -243,7 +248,11 @@ export class GameScene extends Phaser.Scene {
       .setDepth(10)
       .setScrollFactor(1);
 
-    this._worldContainer.add([bodyMapImage, border, this._bodyMapTitle]);
+    this._worldContainer.add([
+      this._bodyMapImage,
+      this._bodyMapBorder,
+      this._bodyMapTitle,
+    ]);
 
     this.tweens.add({
       targets: this._bodyMapTitle,
@@ -255,19 +264,17 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  _scaledMarkerPos(marker) {
-    const markerScale = Phaser.Math.Clamp(this.scale.width / 1200, 0.9, 1.12);
+  _scaledMarkerPos(baseX, baseY) {
+    const markerScale = this._bodyMapScale || this._getBodyMapScale();
     return {
-      x: BODY_X + (marker.x - BODY_X) * markerScale,
-      y: BODY_Y + (marker.y - BODY_Y) * markerScale,
+      x: BODY_X + (baseX - BODY_X) * markerScale,
+      y: BODY_Y + (baseY - BODY_Y) * markerScale,
     };
   }
 
   _createMarkers() {
-    this._npcs = MARKERS.map((marker) => {
-      const scaled = this._scaledMarkerPos(marker);
-      marker.x = scaled.x;
-      marker.y = scaled.y;
+    this._npcs = this._markerDefs.map((marker) => {
+      const scaled = this._scaledMarkerPos(marker.x, marker.y);
 
       const glow = this.add
         .ellipse(marker.x, marker.y + 18, 42, 14, 0x000000, 0.28)
@@ -302,7 +309,16 @@ export class GameScene extends Phaser.Scene {
         ease: "Sine.easeInOut",
       });
 
-      return { ...marker, sprite, label, glow };
+      return {
+        ...marker,
+        baseX: marker.x,
+        baseY: marker.y,
+        x: scaled.x,
+        y: scaled.y,
+        sprite,
+        label,
+        glow,
+      };
     });
   }
 
@@ -710,6 +726,29 @@ export class GameScene extends Phaser.Scene {
   }
 
   _handleResize(gameSize) {
+    this._bodyMapScale = this._getBodyMapScale();
+
+    if (this._bodyMapImage && this._bodyMapBorder) {
+      const mapWidth = BODY_WIDTH * this._bodyMapScale;
+      const mapHeight = BODY_HEIGHT * this._bodyMapScale;
+
+      this._bodyMapImage.setDisplaySize(mapWidth, mapHeight);
+
+      this._bodyMapBorder.clear();
+      this._bodyMapBorder.lineStyle(3, 0xe8d4af, 0.95);
+      this._bodyMapBorder.strokeRoundedRect(
+        BODY_X - mapWidth / 2 - 16,
+        BODY_Y - mapHeight / 2 - 16,
+        mapWidth + 32,
+        mapHeight + 32,
+        28,
+      );
+
+      if (this._bodyMapTitle) {
+        this._bodyMapTitle.setY(BODY_Y - mapHeight / 2 - 120);
+      }
+    }
+
     if (this._hintText) {
       this._hintText.setPosition(gameSize.width / 2, gameSize.height - 42);
     }
@@ -724,21 +763,22 @@ export class GameScene extends Phaser.Scene {
       this._minimapBounds.setSize(size, size);
       this._minimapBounds.setPosition(gameSize.width - size - 16, 16);
       this._minimapLabel.setPosition(gameSize.width - size - 8, 24);
+      this._miniMapToggleText.setPosition(
+        gameSize.width - size - 8,
+        16 + size - 16,
+      );
     }
 
     const zoom = Phaser.Math.Clamp(gameSize.width / 1200, 0.85, 1.05);
     this.cameras.main.setZoom(zoom);
 
-    this._npcs?.forEach((npc, idx) => {
-      const original = MARKERS[idx];
-      const adjusted = this._scaledMarkerPos(original);
+    this._npcs?.forEach((npc) => {
+      const adjusted = this._scaledMarkerPos(npc.baseX, npc.baseY);
       npc.x = adjusted.x;
       npc.y = adjusted.y;
       npc.sprite.setPosition(adjusted.x, adjusted.y);
       npc.glow.setPosition(adjusted.x, adjusted.y + 18);
       npc.label.setPosition(adjusted.x, adjusted.y + 44);
-      MARKERS[idx].x = adjusted.x;
-      MARKERS[idx].y = adjusted.y;
     });
 
     if (this._activeNpcId) {
